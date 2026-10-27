@@ -23,7 +23,19 @@ Built from scratch for the [Meta Global AI Developer Hackathon](https://cerebral
 Code, not the model, makes every safety decision: cable size against breaker, voltage drop, RCD and earth checks. A licensed electrician signs off. WireProof never guides work on live circuits.
 
 ## Status
-Day 1: `probe/` holds the go/no-go tests that check Meta's models can read real cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
+- `web/` is the app (Next.js 16). Run it with `cd web && npm install && npm run dev`, then open http://localhost:3000. Its parts:
+  - **Rules engine** (`web/src/lib/rules`): BS 7671 checks for cable capacity with ambient and grouping factors, breaker coordination, voltage drop, earth, 30 mA RCD, and fake cable (magnet test, printed size, SON alert brands). Run the tests with `npm test`.
+  - **Screens:**
+    - landing page;
+    - job overview, with fixes grouped so one fix that clears many flags reads as one;
+    - circuit detail, with every reading tied to its evidence frame;
+    - printable owner report / pre-inspection pack;
+    - step-through agent console;
+    - electrician copilot, which answers sizing questions from the rules engine;
+    - breaker-panel reader.
+  - **Demo data:** a sample first-fix job (people and the faulty cable brand are made up).
+- `probe/` holds the go/no-go tests that check Meta's models can read cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
+- The Meta model calls (Muse Spark readings, Voice Transcribe push-to-talk, SAM 3.1 conduit tracing) come next.
 
 ## Licence
 MIT

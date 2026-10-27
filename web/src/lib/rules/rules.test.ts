@@ -78,7 +78,7 @@ describe("checks", () => {
   });
 
   it("fails excessive voltage drop", () => {
-    const r = checkCircuit(base({ designCurrentA: undefined, loadW: 4600, lengthM: 40 }));
+    const r = checkCircuit(base({ loadW: 4600, lengthM: 40 }));
     expect(r.findings.find((f) => f.ruleId === "VOLT-DROP")?.status).toBe("fail"); // 18 × 20 × 40 = 14.4 V = 6.3%
   });
 
