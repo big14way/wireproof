@@ -307,13 +307,32 @@ def cmd_read(a):
         print(f"\n{a.task}: {right}/{n} files fully correct on {', '.join(scored)}")
 
 
+NUMBER_WORDS = {w: str(i) for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen "
+    "seventeen eighteen nineteen twenty".split())}
+NUMBER_WORDS.update({"thirty": "30", "forty": "40", "fifty": "50", "hundred": "100"})
+SPELLING = {"metres": "meters", "metre": "meter", "horse power": "horsepower", "air conditioner": "ac",
+            "a c": "ac", "amperes": "amps", "ampere": "amp", "millimetre": "mm", "millimeter": "mm",
+            "square mm": "mm", "mm2": "mm", "mm²": "mm"}
+
+
+def normalise_speech(text):
+    """Lower-case, unify spellings and turn spoken numbers ("one point five") into digits ("1.5")."""
+    s = re.sub(r"[^a-z0-9.² ]+", " ", text.lower())
+    for k, v in SPELLING.items():
+        s = re.sub(rf"\b{k}\b", v, s)
+    s = " ".join(NUMBER_WORDS.get(w, w) for w in s.split())
+    s = re.sub(r"\b(\d+) point (\d+)\b", r"\1.\2", s)
+    return re.sub(r"(?<=\d)\.(?!\d)|\.$", "", s)
+
+
 def cmd_voice(a):
     """Transcribe each recorded command with Muse Voice Transcribe (file endpoint) and compare with the script."""
     script = {r["file"]: r["text"] for r in csv.DictReader(open(a.truth))} if a.truth else {}
-    words = lambda s: re.findall(r"[a-z0-9.]+", s.lower())
+    words = lambda s: normalise_speech(s).split()
     hits = n = 0
     with tempfile.TemporaryDirectory() as tmp:
-        for f in sorted(p for p in Path(a.folder).iterdir() if p.suffix.lower() in {".wav", ".m4a", ".mp3", ".ogg", ".mp4"}):
+        for f in sorted(p for p in Path(a.folder).iterdir() if p.suffix.lower() in {".wav", ".m4a", ".mp3", ".ogg", ".opus", ".aiff", ".caf", ".webm", ".mp4"}):
             wav = Path(tmp) / (f.stem + ".wav")
             ffmpeg("-i", str(f), "-ac", "1", "-ar", "24000", "-c:a", "pcm_s16le", "-map_metadata", "-1", str(wav))
             req = {"mode": "PUSH_TO_TALK", "model": "muse-voice-transcribe-1.0", "audioEncoding": "WAV",
