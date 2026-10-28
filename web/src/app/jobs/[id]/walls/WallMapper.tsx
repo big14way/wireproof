@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FindingCard } from "@/components/ui";
+import { FindingCard, GateBadge, type GateInfo } from "@/components/ui";
 import { imageToJpegDataUrl } from "@/lib/media";
 import type { WallMap } from "@/lib/wallmap";
 
@@ -14,6 +14,7 @@ interface Mapped {
   height: number;
   ms: number;
   concept: string;
+  gate?: GateInfo;
 }
 
 function Overlay({ m, xray }: { m: Mapped; xray?: boolean }) {
@@ -115,6 +116,7 @@ export default function WallMapper() {
             )}
             {photo && mapped && <Overlay m={mapped} />}
           </div>
+          {mapped && <div className="mt-1"><GateBadge gate={mapped.gate} /></div>}
         </figure>
         <figure>
           <figcaption className="mb-2 flex items-center justify-between text-sm font-semibold">

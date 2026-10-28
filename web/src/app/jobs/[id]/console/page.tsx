@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PageSkeleton } from "@/components/ui";
 import { getJob } from "@/lib/jobs";
+import EgressLog from "./EgressLog";
 
 async function ConsoleView(props: { params: PageProps<"/jobs/[id]/console">["params"] }) {
   const { id } = await props.params;
@@ -45,6 +46,7 @@ async function ConsoleView(props: { params: PageProps<"/jobs/[id]/console">["par
       </div>
 
       <aside className="space-y-4">
+        <EgressLog />
         <div className="rounded-lg border border-line bg-card p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Checklist</h2>

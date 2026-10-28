@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { answer, type CopilotAnswer } from "@/lib/copilot";
+import { GateBadge, type GateInfo } from "@/components/ui";
 import { blobToDataUrl, imageToJpegDataUrl, PushToTalk } from "@/lib/media";
 
 const SUGGESTIONS = [
@@ -16,6 +17,7 @@ interface Reading {
   problems: string[];
   evidence: { id: string; by: string; note?: string; confidence?: number; at?: number };
   value: unknown;
+  gate?: GateInfo;
 }
 
 type Item =
@@ -128,6 +130,7 @@ export default function Copilot({ jobTitle }: { jobTitle: string }) {
     setBusy("Recording 5 s magnet test…");
     const started = Date.now();
     try {
+      const poster = await imageToJpegDataUrl(videoRef.current!);
       const rec = new MediaRecorder(stream, { mimeType: type });
       const chunks: Blob[] = [];
       rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
@@ -138,7 +141,7 @@ export default function Copilot({ jobTitle }: { jobTitle: string }) {
       await stopped;
       setBusy("Judging the magnet test with Muse Spark…");
       const media = await blobToDataUrl(new Blob(chunks, { type: "video/mp4" }));
-      const res = await fetch("/api/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "magnet", media }) });
+      const res = await fetch("/api/read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ task: "magnet", media, poster }) });
       const body = await res.json();
       if (!body.ok) throw new Error(body.error);
       push({ kind: "reading", task: "magnet", data: body, ms: Date.now() - started });
@@ -226,6 +229,7 @@ export default function Copilot({ jobTitle }: { jobTitle: string }) {
                   </div>
                   <p className={`mt-1 text-xl font-semibold leading-snug ${it.task === "magnet" && it.data.value === true ? "text-fail" : ""}`}>{summary(it)}</p>
                   {it.data.evidence.note && <p className="mt-1 text-sm text-ink-2">{it.data.evidence.note}</p>}
+                  <div className="mt-1"><GateBadge gate={it.data.gate} /></div>
                   {it.data.problems.length > 0 && (
                     <ul className="mt-2 list-disc pl-5 text-sm text-warn">{it.data.problems.map((p) => <li key={p}>{p}</li>)}</ul>
                   )}

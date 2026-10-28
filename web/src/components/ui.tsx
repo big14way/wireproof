@@ -97,3 +97,21 @@ export function PageSkeleton() {
     </div>
   );
 }
+
+export interface GateInfo {
+  status: "pass" | "warn" | "block" | "off";
+  reasons?: string[];
+  ms?: number;
+}
+
+/** Shows what the Glimmer privacy gate said before a photo went to Meta's hosted models. */
+export function GateBadge({ gate }: { gate?: GateInfo }) {
+  if (!gate) return null;
+  const style = { pass: "text-pass", warn: "text-warn", block: "text-fail", off: "text-muted" }[gate.status];
+  const label = { pass: "passed", warn: "passed with a warning", block: "blocked", off: "off (Glimmer not connected)" }[gate.status];
+  return (
+    <span className={`text-xs ${style}`} title={gate.reasons?.join(" ")}>
+      Glimmer gate {label}{gate.ms != null ? ` · ${(gate.ms / 1000).toFixed(1)} s` : ""}{gate.reasons?.length ? ` · ${gate.reasons[0]}` : ""}
+    </span>
+  );
+}

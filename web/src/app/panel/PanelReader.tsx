@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { GateBadge, type GateInfo } from "@/components/ui";
 import { imageToJpegDataUrl } from "@/lib/media";
 import type { PanelDevice } from "@/lib/panel";
 import type { Finding, Status } from "@/lib/rules";
@@ -14,6 +15,7 @@ interface Result {
   problems: string[];
   model?: string;
   ms?: number;
+  gate?: GateInfo;
 }
 
 export default function PanelReader({ sample }: { sample: Result }) {
@@ -60,7 +62,7 @@ export default function PanelReader({ sample }: { sample: Result }) {
       const res = await fetch("/api/panel", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ media }) });
       const body = await res.json();
       if (!body.ok) throw new Error(body.error);
-      setResult({ devices: body.value.devices, findings: body.findings, verified: body.verified, problems: body.problems, model: body.evidence.by, ms: Date.now() - started });
+      setResult({ devices: body.value.devices, findings: body.findings, verified: body.verified, problems: body.problems, model: body.evidence.by, ms: Date.now() - started, gate: body.gate });
       setLive(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Reading failed");
@@ -140,6 +142,7 @@ export default function PanelReader({ sample }: { sample: Result }) {
             ))}
           </tbody>
         </table>
+        {live && <div className="mt-2"><GateBadge gate={result.gate} /></div>}
         {result.problems.length > 0 && (
           <ul className="mt-3 list-disc pl-5 text-sm text-warn">{result.problems.map((p) => <li key={p}>{p}</li>)}</ul>
         )}
