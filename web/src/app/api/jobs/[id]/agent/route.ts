@@ -8,8 +8,8 @@ import { checkDataUrl, errorResponse } from "../../../_errors";
 
 // Words the electrician says that a general speech model might mishear.
 const KEYWORDS = ["MCB", "RCD", "RCBO", "mm", "amps", "conduit", "earth", "neutral", "breaker", "distribution board", "horsepower", "pumping machine"];
-const HINTS = ["cable", "board", "magnet"] as const;
-const DEFAULT_SAID = { cable: "Read this cable print.", board: "Read this distribution board.", magnet: "Here is the magnet test." } as const;
+const HINTS = ["cable", "board", "magnet", "wall"] as const;
+const DEFAULT_SAID = { cable: "Read this cable print.", board: "Read this distribution board.", magnet: "Here is the magnet test.", wall: "Map this wall before it is plastered." } as const;
 
 const noJob = () => Response.json({ ok: false, error: "No such job" }, { status: 404 });
 

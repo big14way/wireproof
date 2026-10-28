@@ -38,9 +38,9 @@ describe("saidNumber", () => {
 describe("checklist", () => {
   const ev = (o: Partial<EvidenceRecord>): EvidenceRecord => ({ id: "e1", at: "", tool: "read_cable_print", by: "muse-spark-1.3", summary: "", verified: true, problems: [], proves: [], ...o });
 
-  it("has four checks per circuit plus board, memo and sign-off", () => {
+  it("has four checks per circuit plus board, walls, memo and sign-off", () => {
     const list = initialChecklist([{ id: "pump", name: "Pump" }, { id: "heater", name: "Heater" }]);
-    expect(list).toHaveLength(11);
+    expect(list).toHaveLength(12);
     expect(list.map((i) => i.id)).toContain("magnet:heater");
   });
   it("ticks only with verified evidence that proves the item", () => {

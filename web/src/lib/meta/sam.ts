@@ -1,5 +1,6 @@
 import "server-only";
 import { decodeMaskToRaster, parseImageStream, recordsOfKind, type ResponsesEvent } from "@meta-sam/parser";
+import { buildWallMap } from "@/lib/wallmap";
 import { MetaApiError, SAM } from "./client";
 
 const BASE = "https://api.meta.ai/v1";
@@ -134,4 +135,22 @@ export async function samImage(dataUrl: string, concept: string, opts: { lines?:
     };
   });
   return { width, height, objects, ms: Date.now() - started };
+}
+
+/**
+ * Map the cable runs in a chased, unplastered wall. SAM 3.1 segments the conduit and the blocks;
+ * the block grid turns pixels into centimetres; the rules check the safe zones.
+ */
+export async function traceWall(dataUrl: string) {
+  const [blocks, first] = await Promise.all([samImage(dataUrl, "concrete block"), samImage(dataUrl, "conduit", { lines: true })]);
+  // "conduit" is the precise word; "pipe" catches PVC conduit SAM doesn't know by name.
+  const conduits = first.objects.length ? first : await samImage(dataUrl, "pipe", { lines: true });
+  const width = conduits.width || blocks.width;
+  const height = conduits.height || blocks.height;
+  return {
+    width, height, blocks,
+    concept: first.objects.length ? "conduit" : "pipe",
+    map: buildWallMap({ width, height, conduits: conduits.objects, blocks: blocks.objects }),
+    ms: Math.max(blocks.ms, first.ms) + (conduits === first ? 0 : conduits.ms),
+  };
 }

@@ -3,7 +3,8 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { digest } from "@/lib/egress";
 import type { Job } from "@/lib/jobs";
-import type { Circuit } from "@/lib/rules";
+import { SAM } from "@/lib/meta/client";
+import type { Circuit, Finding } from "@/lib/rules";
 import type { CaseRecord, EvidenceRecord, MediaRef } from "./types";
 import { initialChecklist } from "./verify";
 
@@ -64,7 +65,7 @@ export async function resetCase(job: Job): Promise<CaseRecord> {
   return c;
 }
 
-export async function addMedia(c: CaseRecord, dataUrl: string, extra: Pick<MediaRef, "hint" | "circuitId" | "posterId"> = {}): Promise<MediaRef> {
+export async function addMedia(c: CaseRecord, dataUrl: string, extra: Pick<MediaRef, "hint" | "circuitId" | "posterId" | "generated"> = {}): Promise<MediaRef> {
   const mime = dataUrl.slice(5, dataUrl.indexOf(";"));
   const ref: MediaRef = {
     id: `m${c.media.length + 1}`, kind: mime.startsWith("video/") ? "clip" : "photo", mime,
@@ -96,7 +97,21 @@ export function addEvidence(c: CaseRecord, e: Omit<EvidenceRecord, "id" | "at">)
   return rec;
 }
 
-const HINT = { cable: "Read cable print", board: "Read board", magnet: "Magnet test" } as const;
+/** Safe-zone failures and warnings from every verified wall map, labelled with the wall they came from. */
+export function wallFindings(c: CaseRecord): Finding[] {
+  const verified = new Set(c.evidence.filter((e) => e.verified).map((e) => e.id));
+  return (c.walls ?? []).filter((w) => verified.has(w.evidenceId)).flatMap((w) =>
+    w.map.findings.filter((f) => f.status === "fail" || f.status === "warn").map((f) => ({
+      ...f, where: `Wall ${w.id}`,
+      evidence: [{ id: w.evidenceId, kind: "photo" as const, by: SAM, note: `Wall ${w.id} before plaster`, src: mediaUrl(c.jobId, w.mediaId) }],
+    })),
+  );
+}
+
+const HINT = { cable: "Read cable print", board: "Read board", magnet: "Magnet test", wall: "Map wall" } as const;
+
+/** Where the browser can fetch a captured photo or clip. */
+export const mediaUrl = (jobId: string, mediaId: string) => `/api/jobs/${jobId}/media/${mediaId}`;
 
 function circuitLine(k: Circuit): string {
   const cab = k.cable;
@@ -120,7 +135,7 @@ export function caseBrief(c: CaseRecord, opts: { said: string; breakerOff: boole
   const board = c.boardRead
     ? `read [${c.boardRead.evidenceId}], ${c.boardRead.verified ? "VERIFIED" : `NOT VERIFIED (${c.boardRead.problems.join(" ")})`}: ${c.boardRead.devices.map((d) => `#${d.position} ${d.kind} ${d.curve ?? ""}${d.ratingA || "?"}A${d.sensitivityMA ? ` ${d.sensitivityMA}mA` : ""}${d.label ? ` "${d.label}"` : ""}`).join("; ")}. RCD on board: ${c.boardRead.rcd ? "yes" : "no"}`
     : "not read yet";
-  const recent = c.media.slice(-6).map((m) => `${m.id} ${m.kind}${m.hint ? ` (${HINT[m.hint]} button)` : ""}${m.circuitId ? `, circuit ${m.circuitId}` : ""}${m.posterId ? `, still ${m.posterId}` : ""}`);
+  const recent = c.media.filter((m) => !m.generated).slice(-6).map((m) => `${m.id} ${m.kind}${m.hint ? ` (${HINT[m.hint]} button)` : ""}${m.circuitId ? `, circuit ${m.circuitId}` : ""}${m.posterId ? `, still ${m.posterId}` : ""}`);
   const history = c.runs.filter((r) => r.status === "done").slice(-3).map((r) => `Electrician: "${r.said}" → You: "${r.reply ?? ""}"`);
   const attached = opts.attached
     ? `${opts.attached.id}: a ${opts.attached.kind} taken with the ${opts.attached.hint ? HINT[opts.attached.hint] : "camera"} button${opts.attached.posterId ? ` (Glimmer checks still ${opts.attached.posterId})` : ""}`
@@ -131,6 +146,7 @@ export function caseBrief(c: CaseRecord, opts: { said: string; breakerOff: boole
     `SELECTED CIRCUIT IN THE APP: ${opts.selected ?? "none"}`,
     `CIRCUITS:\n${c.board.circuits.map(circuitLine).join("\n")}`,
     `BOARD: ${board}`,
+    `WALLS MAPPED: ${(c.walls ?? []).map((w) => `${w.id} from ${w.mediaId} [${w.evidenceId}]: ${w.map.runs.length} runs, ${w.map.findings.filter((f) => f.status === "fail").length} failing`).join("; ") || "none"}`,
     `CHECKLIST: ${c.checklist.length - open.length} of ${c.checklist.length} done. Open: ${open.join(", ") || "none"}`,
     `MEMO: ${c.memo ? `${c.memo.status} (${c.memo.at})` : "not drafted"}`,
     `RECENT MEDIA: ${recent.join("; ") || "none"}`,

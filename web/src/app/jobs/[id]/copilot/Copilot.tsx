@@ -14,7 +14,7 @@ const SUGGESTIONS = [
   "Draft the report for the homeowner.",
 ];
 
-type Hint = "cable" | "board" | "magnet";
+type Hint = "cable" | "board" | "magnet" | "wall";
 
 interface RunView {
   key: number;
@@ -158,12 +158,13 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
     form.set("hint", hint);
     form.set("media", media);
     if (poster) form.set("poster", poster);
-    await send(form, hint === "magnet" ? "Judging the magnet test…" : `Reading the ${hint === "cable" ? "cable print" : "board"}…`);
+    const status = { cable: "Reading the cable print…", board: "Reading the board…", magnet: "Judging the magnet test…", wall: "Tracing the conduit runs with SAM 3.1…" }[hint];
+    await send(form, status);
   }
 
   function capture(hint: Hint) {
     if (hint === "magnet" && !breakerOff) return setNotice("Switch off and lock the breaker for this circuit, tick the box below, then do the magnet test.");
-    if (hint !== "board" && !selected) return setNotice("Pick the circuit first, so the reading lands on the right one.");
+    if ((hint === "cable" || hint === "magnet") && !selected) return setNotice("Pick the circuit first, so the reading lands on the right one.");
     if (!cameraOn) {
       pendingHint.current = hint;
       if (fileRef.current) {
@@ -257,10 +258,11 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
           <button onClick={() => capture("cable")} disabled={!!busy} className="rounded-lg border border-line bg-card py-3 text-sm font-semibold hover:border-copper disabled:opacity-50">Read cable print</button>
           <button onClick={() => capture("board")} disabled={!!busy} className="rounded-lg border border-line bg-card py-3 text-sm font-semibold hover:border-copper disabled:opacity-50">Read board</button>
           <button onClick={() => capture("magnet")} disabled={!!busy} className="rounded-lg border border-line bg-card py-3 text-sm font-semibold hover:border-copper disabled:opacity-50">Magnet test{cameraOn ? " (5 s)" : ""}</button>
+          <button onClick={() => capture("wall")} disabled={!!busy} className="rounded-lg border border-line bg-card py-3 text-sm font-semibold hover:border-copper disabled:opacity-50">Map wall</button>
         </div>
         <input ref={fileRef} type="file" className="hidden" onChange={(e) => { picked(e.target.files?.[0]); e.target.value = ""; }} />
         {notice && <p className="mt-2 rounded-lg bg-warn-soft px-3 py-2 text-sm text-warn">{notice}</p>}

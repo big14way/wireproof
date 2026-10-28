@@ -95,6 +95,8 @@ export interface Finding {
   citation: string;
   evidence?: Evidence[];
   circuitId?: string;
+  /** Where it was found when it isn't a circuit or the board, e.g. "Wall w1". */
+  where?: string;
 }
 
 export interface CircuitResult {

@@ -1,11 +1,13 @@
 import "server-only";
-import { MetaApiError, SPARK } from "@/lib/meta/client";
+import { MetaApiError, SAM, SPARK } from "@/lib/meta/client";
 import { glimmerConfigured, type GateResult } from "@/lib/meta/glimmer";
 import { guarded } from "@/lib/meta/guard";
+import { editImage, MUSE_IMAGE, RENDERS } from "@/lib/meta/image";
 import { readBoard, readCable, readMagnet } from "@/lib/meta/readers";
+import { traceWall } from "@/lib/meta/sam";
 import { CABLE_SIZES, checkCircuit, designCircuit, MCB_RATINGS, parseLoad, type CableSize, type Circuit, type CircuitKind, type Evidence } from "@/lib/rules";
 import { summariseBoard } from "@/lib/summary";
-import { addEvidence, mediaDataUrl } from "./case";
+import { addEvidence, addMedia, mediaDataUrl, mediaUrl, wallFindings } from "./case";
 import type { CaseRecord, MediaRef, Run, Turn } from "./types";
 import { canTick, checkNumbers, numbersIn, saidNumber } from "./verify";
 
@@ -49,6 +51,9 @@ export const TOOLS = [
   }),
   fn("magnet_test", "Judge a clip of a magnet held to the bare conductor: copper does not attract a magnet. A hands-on test, so it is refused unless the breaker is confirmed off.", {
     media_id: { type: "string", description: "Clip id" }, circuit_id: S,
+  }),
+  fn("map_wall", "Map the conduit runs in a photo of a chased wall before plaster: SAM 3.1 traces the runs on the block grid and the rules check the safe zones. Also renders the wall plastered, for the owner's X-ray.", {
+    media_id: { type: "string", description: "Photo id" },
   }),
   fn("assign_breaker", "Record which breaker on the board (position number from the latest board read) feeds a circuit. Only when the electrician said the position, or the device's label names the circuit.", {
     circuit_id: S, position: { type: "integer" },
@@ -111,7 +116,7 @@ async function readCablePrint({ c }: ToolContext, a: Record<string, unknown>): P
     : "No legible print";
   const ev = addEvidence(c, { tool: "read_cable_print", by: r.evidence.by, mediaId: m.id, circuitId: k.id, summary, verified: r.verified, problems: r.problems, proves: r.verified ? [`cable:${k.id}`] : [] });
   if (r.verified) {
-    const evidence: Evidence = { ...r.evidence, id: ev.id };
+    const evidence: Evidence = { ...r.evidence, id: ev.id, src: mediaUrl(c.jobId, m.id) };
     k.cable = {
       ...k.cable,
       printedSize: { value: r.value.printedSize!.value, evidence },
@@ -134,7 +139,7 @@ async function readBoardPhoto({ c }: ToolContext, a: Record<string, unknown>): P
   const summary = `${list || "no devices"}. Main switch ${v.mainSwitch ? "yes" : "no"}, RCD ${v.rcd ? "yes" : "no"}, surge protection ${v.spd ? "yes" : "no"}, labels ${v.labelled ? "yes" : "no"}`;
   const ev = addEvidence(c, { tool: "read_board", by: r.evidence.by, mediaId: m.id, summary, verified: r.verified, problems: r.problems, proves: r.verified ? ["board"] : [] });
   c.boardRead = { evidenceId: ev.id, by: r.evidence.by, devices: v.devices, mainSwitch: v.mainSwitch, rcd: v.rcd, spd: v.spd, labelled: v.labelled, verified: r.verified, problems: r.problems };
-  if (r.verified) applyBoard(c, { ...r.evidence, id: ev.id });
+  if (r.verified) applyBoard(c, { ...r.evidence, id: ev.id, src: mediaUrl(c.jobId, m.id) });
   return {
     ok: true, evidenceId: ev.id, verified: r.verified, model: r.evidence.by, gate: gateInfo(gate),
     observation: `${r.verified ? "VERIFIED" : "NOT VERIFIED"} [${ev.id}] ${summary}.${r.problems.length ? ` Problems: ${r.problems.join(" ")}` : ""}`,
@@ -166,12 +171,12 @@ function correctBoardDevice({ c, run }: ToolContext, a: Record<string, unknown>)
   b.problems = b.problems.filter((p) => !p.startsWith(`Device ${position}:`));
   const nowVerified = !b.verified && b.problems.length === 0;
   const ev = addEvidence(c, {
-    tool: "correct_board_device", by: "electrician", summary: `Board #${position} checked by eye: ${device(d)}: “${run.said}”`,
+    tool: "correct_board_device", by: "electrician", mediaId: c.evidence.find((e) => e.id === b.evidenceId)?.mediaId, summary: `Board #${position} checked by eye: ${device(d)}: “${run.said}”`,
     verified: true, problems: [], proves: nowVerified ? ["board"] : [],
   });
   if (nowVerified) {
     b.verified = true;
-    applyBoard(c, { id: ev.id, kind: "photo", by: `${b.by} + electrician`, note: `Board read ${b.evidenceId}, corrected by eye` });
+    applyBoard(c, { id: ev.id, kind: "photo", by: `${b.by} + electrician`, note: `Board read ${b.evidenceId}, corrected by eye`, src: ev.mediaId && mediaUrl(c.jobId, ev.mediaId) });
   }
   const state = b.verified ? (nowVerified ? "The board reading is now VERIFIED." : "") : `Still NOT VERIFIED: ${b.problems.join(" ")}`;
   return { ok: true, evidenceId: ev.id, verified: true, observation: `[${ev.id}] #${position} set to ${device(d)}. ${state}`.trim() };
@@ -194,10 +199,39 @@ async function magnetTest({ c, run }: ToolContext, a: Record<string, unknown>): 
   const at = r.evidence.at != null ? ` at ${r.evidence.at} s` : "";
   const summary = `${r.value === true ? `Magnet sticks${at}: NOT copper` : r.value === false ? "No attraction: copper" : "Inconclusive"}. ${r.evidence.note ?? ""}`.trim();
   const ev = addEvidence(c, { tool: "magnet_test", by: r.evidence.by, mediaId: m.id, circuitId: k.id, summary, verified: r.verified, problems: r.problems, proves: r.verified ? [`magnet:${k.id}`] : [] });
-  if (r.verified && r.value != null) k.cable = { ...k.cable, magnetAttaches: { value: r.value, evidence: { ...r.evidence, id: ev.id } } };
+  if (r.verified && r.value != null) k.cable = { ...k.cable, magnetAttaches: { value: r.value, evidence: { ...r.evidence, id: ev.id, src: mediaUrl(c.jobId, m.id) } } };
   return {
     ok: true, evidenceId: ev.id, verified: r.verified, model: r.evidence.by, gate: gateInfo(gate),
     observation: `${r.verified ? "VERIFIED" : "NOT VERIFIED"} [${ev.id}] ${summary}${r.problems.length ? ` Problems: ${r.problems.join(" ")}` : ""}`,
+  };
+}
+
+async function mapWall({ c }: ToolContext, a: Record<string, unknown>): Promise<ToolResult> {
+  const m = mediaOf(c, a.media_id, "photo");
+  const dataUrl = await mediaDataUrl(c, m);
+  // SAM traces while Muse Image plasters the same photo; a failed render never costs the map.
+  const { result: [t, render], gate } = await guarded({ route: "agent/map_wall", model: `${SAM} + ${MUSE_IMAGE}`, media: dataUrl, expected: "chased_wall" }, () =>
+    Promise.all([
+      traceWall(dataUrl),
+      editImage(dataUrl, RENDERS["wall-plastered"]).catch((e: Error) => {
+        console.warn("wall render failed:", e.message);
+        return null;
+      }),
+    ]));
+  const { map } = t;
+  const problems: string[] = [];
+  if (!map.calibrated) problems.push("Fewer than three whole blocks found: photograph the wall front-on with whole blocks around the conduit.");
+  if (!map.runs.length) problems.push("No conduit runs found: get the whole run in frame, in good light.");
+  const verified = problems.length === 0;
+  const fails = map.findings.filter((f) => f.status === "fail");
+  const id = `w${(c.walls?.length ?? 0) + 1}`;
+  const summary = `Wall ${id}: ${map.runs.length} runs (${map.runs.map((r) => `${r.id} ${r.orientation} ${r.lengthCm} ${map.calibrated ? "cm" : "px"}`).join("; ") || "none"}). ${fails.length ? fails.map((f) => f.title).join("; ") : "Every run in the safe zones"}`;
+  const ev = addEvidence(c, { tool: "map_wall", by: SAM, mediaId: m.id, summary, verified, problems, proves: verified ? ["walls"] : [] });
+  const rendered = render ? await addMedia(c, render.dataUrl, { generated: true }) : undefined;
+  (c.walls ??= []).push({ id, mediaId: m.id, renderMediaId: rendered?.id, evidenceId: ev.id, width: t.width, height: t.height, map });
+  return {
+    ok: true, evidenceId: ev.id, verified, model: SAM, gate: gateInfo(gate),
+    observation: `${verified ? "VERIFIED" : "NOT VERIFIED"} [${ev.id}] ${summary}.${map.calibrated ? ` Calibrated on ${map.blocksUsed} blocks.` : ""}${problems.length ? ` Problems: ${problems.join(" ")}` : ""} ${rendered ? "Plastered render saved for the owner's X-ray." : "No render this time."}`,
   };
 }
 
@@ -217,7 +251,8 @@ function assignBreaker({ c, run }: ToolContext, a: Record<string, unknown>): Too
     summary: `Breaker #${d.position} (${device(d)}) feeds ${k.name}${said ? `: “${run.said}”` : `: labelled “${d.label}”`}`,
     verified: true, problems: [], proves: [`breaker:${k.id}`],
   });
-  const evidence: Evidence = { id: ev.id, kind: "photo", by: c.boardRead.by, note: `Breaker #${d.position}: ${device(d)}` };
+  const boardPhoto = c.evidence.find((e) => e.id === c.boardRead!.evidenceId)?.mediaId;
+  const evidence: Evidence = { id: ev.id, kind: "photo", by: c.boardRead.by, note: `Breaker #${d.position}: ${device(d)}`, src: boardPhoto && mediaUrl(c.jobId, boardPhoto) };
   k.device = { value: { type: d.type, ratingA: d.ratingA, curve: d.curve }, evidence };
   // An RCBO protects its own circuit. A plain MCB is covered only if the board has an RCD; on a split board that
   // depends on which side it sits, so leave it unconfirmed rather than guess.
@@ -303,7 +338,7 @@ function tick({ c }: ToolContext, a: Record<string, unknown>): ToolResult {
 function submitMemo({ c }: ToolContext, a: Record<string, unknown>): ToolResult {
   const summary = String(a.summary ?? "").trim();
   if (!summary) throw new ToolError("Write a short summary for the homeowner.");
-  const s = summariseBoard(c.board);
+  const s = summariseBoard(c.board, wallFindings(c));
   const facts = [
     ...c.evidence.map((e) => e.summary),
     ...s.all.map((f) => `${f.title}. ${f.detail} ${f.fix ?? ""}`),
@@ -312,7 +347,7 @@ function submitMemo({ c }: ToolContext, a: Record<string, unknown>): ToolResult 
   const open = c.checklist.filter((i) => !i.done && i.id !== "memo" && i.id !== "confirm").map((i) => i.label);
   c.memo = {
     at: new Date().toISOString(), status: "unverified", summary, summaryCheck: checkNumbers(summary, facts),
-    verdict: s.board.verdict, fixes: s.fixes.map((f) => ({ fix: f.fix, status: f.status, count: f.findings.length })),
+    verdict: s.verdict, fixes: s.fixes.map((f) => ({ fix: f.fix, status: f.status, count: f.findings.length })),
     open, evidenceIds: c.evidence.filter((e) => e.verified).map((e) => e.id),
   };
   for (const item of c.checklist) {
@@ -321,7 +356,7 @@ function submitMemo({ c }: ToolContext, a: Record<string, unknown>): ToolResult 
     if (item.id === "confirm") Object.assign(item, { done: false, by: undefined });
   }
   const check = c.memo.summaryCheck.ok ? "" : ` Your summary has numbers no tool produced (${c.memo.summaryCheck.unknown.join(", ")}); they are flagged to the reader.`;
-  return { ok: true, observation: `Memo saved, UNVERIFIED until the electrician confirms it in the app. Verdict ${s.board.verdict.toUpperCase()}, ${s.fixes.length} fixes, ${open.length} checks still open.${check}` };
+  return { ok: true, observation: `Memo saved, UNVERIFIED until the electrician confirms it in the app. Verdict ${s.verdict.toUpperCase()}, ${s.fixes.length} fixes, ${open.length} checks still open.${check}` };
 }
 
 const RUN: Record<string, (ctx: ToolContext, a: Record<string, unknown>) => ToolResult | Promise<ToolResult>> = {
@@ -329,6 +364,7 @@ const RUN: Record<string, (ctx: ToolContext, a: Record<string, unknown>) => Tool
   read_board: readBoardPhoto,
   correct_board_device: correctBoardDevice,
   magnet_test: magnetTest,
+  map_wall: mapWall,
   assign_breaker: assignBreaker,
   record_observation: recordObservation,
   check_circuit: checkOne,

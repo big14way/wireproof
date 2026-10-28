@@ -1,5 +1,5 @@
 import type { Job } from "./jobs";
-import { checkBoard, type Board, type Finding, type Status } from "./rules";
+import { checkBoard, worst, type Board, type Finding, type Status } from "./rules";
 
 export interface FixGroup {
   fix: string;
@@ -12,9 +12,10 @@ export function summarise(job: Job) {
   return summariseBoard(job.board);
 }
 
-export function summariseBoard(b: Board) {
+/** `extra` carries findings from outside the board, such as the wall map's safe-zone checks. */
+export function summariseBoard(b: Board, extra: Finding[] = []) {
   const board = checkBoard(b);
-  const all = [...board.findings, ...board.circuits.flatMap((c) => c.findings)];
+  const all = [...board.findings, ...board.circuits.flatMap((c) => c.findings), ...extra];
   const count = (s: Status) => all.filter((f) => f.status === s).length;
 
   const groups = new Map<string, FixGroup>();
@@ -29,5 +30,8 @@ export function summariseBoard(b: Board) {
   }
   const fixes = [...groups.values()].sort((a, b) => (a.status === b.status ? b.findings.length - a.findings.length : a.status === "fail" ? -1 : 1));
 
-  return { board, all, fixes, counts: { fail: count("fail"), warn: count("warn"), pass: count("pass"), info: count("info") } };
+  return {
+    board, all, fixes, verdict: worst(all.map((f) => f.status)),
+    counts: { fail: count("fail"), warn: count("warn"), pass: count("pass"), info: count("info") },
+  };
 }

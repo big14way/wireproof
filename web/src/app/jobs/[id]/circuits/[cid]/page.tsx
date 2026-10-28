@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { EvidenceTag, FindingCard, Section, Stat, StatusChip, PageSkeleton } from "@/components/ui";
+import { jobData } from "@/lib/agent/jobdata";
 import { getJob } from "@/lib/jobs";
 import { checkCircuit, CITATIONS, INSTALL_METHOD_LABEL, type Reading } from "@/lib/rules";
 
@@ -19,17 +20,19 @@ function Row<T>({ label, reading, show }: { label: string; reading?: Reading<T>;
   );
 }
 
-async function CircuitView(props: { params: PageProps<"/jobs/[id]/circuits/[cid]">["params"] }) {
+async function CircuitView(props: PageProps<"/jobs/[id]/circuits/[cid]">) {
   const { id, cid } = await props.params;
   const job = getJob(id);
-  const circuit = job?.board.circuits.find((c) => c.id === cid);
-  if (!job || !circuit) notFound();
+  if (!job) notFound();
+  const { source, board } = await jobData(job, (await props.searchParams).data);
+  const circuit = board.circuits.find((c) => c.id === cid);
+  if (!circuit) notFound();
   const { findings, verdict, numbers: n } = checkCircuit(circuit);
   const order = { fail: 0, warn: 1, info: 2, pass: 3 } as const;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <Link href={`/jobs/${job.id}`} className="text-sm text-muted hover:text-copper">← {job.title}</Link>
+      <Link href={`/jobs/${job.id}?data=${source}`} className="text-sm text-muted hover:text-copper">← {job.title} · {source === "live" ? "live case" : "sample data"}</Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-semibold tracking-tight">{circuit.name}</h1>
         <StatusChip status={verdict} />
@@ -70,7 +73,7 @@ async function CircuitView(props: { params: PageProps<"/jobs/[id]/circuits/[cid]
 export default function CircuitPage(props: PageProps<"/jobs/[id]/circuits/[cid]">) {
   return (
     <Suspense fallback={<PageSkeleton />}>
-      <CircuitView params={props.params} />
+      <CircuitView {...props} />
     </Suspense>
   );
 }

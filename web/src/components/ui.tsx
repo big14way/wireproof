@@ -21,17 +21,19 @@ export function StatusChip({ status, label }: { status: Status; label?: string }
 
 export function EvidenceTag({ ev }: { ev: Evidence }) {
   const icon = ev.kind === "clip" ? "▶" : ev.kind === "voice" ? "🎙" : ev.kind === "manual" ? "✎" : "◧";
+  const Tag = ev.src ? "a" : "span";
   return (
-    <span
-      className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-line bg-paper px-2 py-1 text-xs text-ink-2"
-      title={ev.note}
+    <Tag
+      {...(ev.src ? { href: ev.src, target: "_blank", rel: "noreferrer" } : {})}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-md border border-line bg-paper px-2 py-1 text-xs text-ink-2 ${ev.src ? "hover:border-copper" : ""}`}
+      title={ev.src ? `Open the ${ev.kind === "clip" ? "clip" : "photo"}: ${ev.note ?? ""}` : ev.note}
     >
       <span aria-hidden className="text-copper">{icon}</span>
       <span className="font-mono">{ev.id}</span>
       {ev.at != null && <span className="text-muted">@{ev.at.toFixed(1)}s</span>}
       <span className="truncate text-muted">· {ev.note}</span>
       {ev.confidence != null && <span className="text-muted">· {Math.round(ev.confidence * 100)}%</span>}
-    </span>
+    </Tag>
   );
 }
 

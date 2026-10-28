@@ -28,11 +28,12 @@ export function saidNumber(said: string, n: number): boolean {
   return numbersIn(said).some((x) => key(x) === key(n));
 }
 
-/** The case checklist: the board, then four checks per circuit, then the memo and the electrician's sign-off. */
+/** The case checklist: the board and the walls, then four checks per circuit, then the memo and the electrician's sign-off. */
 export function initialChecklist(circuits: { id: string; name: string }[]): CaseChecklistItem[] {
   const item = (id: string, label: string, circuitId?: string): CaseChecklistItem => ({ id, label, circuitId, done: false, evidenceIds: [] });
   return [
     item("board", "Distribution board read, cover off"),
+    item("walls", "Conduit runs mapped before plaster"),
     ...circuits.flatMap((c) => [
       item(`cable:${c.id}`, `${c.name}: cable print read`, c.id),
       item(`magnet:${c.id}`, `${c.name}: magnet test`, c.id),

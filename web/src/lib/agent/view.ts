@@ -6,6 +6,7 @@ export const TOOL_LABEL: Record<string, string> = {
   read_board: "Read board",
   correct_board_device: "Board corrected by eye",
   magnet_test: "Magnet test",
+  map_wall: "Wall mapped",
   assign_breaker: "Breaker assigned",
   record_observation: "Recorded what you said",
   check_circuit: "Rules check",

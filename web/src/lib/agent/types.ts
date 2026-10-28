@@ -1,4 +1,5 @@
 import type { Board, ProtectiveDevice, Status } from "@/lib/rules";
+import type { WallMap } from "@/lib/wallmap";
 
 /** A photo or clip the electrician captured. It stays on our server; only a tool sends it to a model. */
 export interface MediaRef {
@@ -9,7 +10,9 @@ export interface MediaRef {
   digest: string;
   at: string;
   /** The capture button used: what the electrician meant to show. */
-  hint?: "cable" | "board" | "magnet";
+  hint?: "cable" | "board" | "magnet" | "wall";
+  /** Made by a model (the Muse Image render of a plastered wall), not captured on site. */
+  generated?: boolean;
   circuitId?: string;
   /** For a clip: the still Glimmer checks before the clip may leave. */
   posterId?: string;
@@ -100,6 +103,17 @@ export interface BoardDevice extends ProtectiveDevice {
   label: string;
 }
 
+/** A chased wall mapped before plaster: SAM 3.1 runs on the block grid, and Muse Image's plastered render of the same photo. */
+export interface WallRecord {
+  id: string;
+  mediaId: string;
+  renderMediaId?: string;
+  evidenceId: string;
+  width: number;
+  height: number;
+  map: WallMap;
+}
+
 export interface CaseRecord {
   jobId: string;
   title: string;
@@ -121,6 +135,7 @@ export interface CaseRecord {
   media: MediaRef[];
   evidence: EvidenceRecord[];
   runs: Run[];
+  walls?: WallRecord[];
   memo?: Memo;
 }
 

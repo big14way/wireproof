@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { FindingCard, GateBadge, type GateInfo } from "@/components/ui";
+import { NO_DRILL_CM, WallOverlay } from "@/components/WallOverlay";
 import { imageToJpegDataUrl } from "@/lib/media";
 import type { WallMap } from "@/lib/wallmap";
 
 const SAMPLE = "/samples/wall-sample.jpg";
-const NO_DRILL_CM = 15;
 
 interface Mapped {
   map: WallMap;
@@ -15,28 +15,6 @@ interface Mapped {
   ms: number;
   concept: string;
   gate?: GateInfo;
-}
-
-function Overlay({ m, xray }: { m: Mapped; xray?: boolean }) {
-  const { width: W, height: H, map } = m;
-  const band = map.cmPerPx ? (2 * NO_DRILL_CM) / map.cmPerPx.x : 30;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
-      {map.runs.map((r) => {
-        const bad = r.orientation === "diagonal";
-        const [x1, y1, x2, y2] = [r.img.x1 * W, r.img.y1 * H, r.img.x2 * W, r.img.y2 * H];
-        return (
-          <g key={r.id}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={bad ? "#c62828" : "#f59e0b"} strokeOpacity={xray ? 0.22 : 0.18} strokeWidth={band} strokeLinecap="round" />
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={bad ? "#c62828" : xray ? "#b4652a" : "#fde68a"} strokeWidth={W / 260} strokeDasharray={bad ? `${W / 80} ${W / 120}` : undefined} strokeLinecap="round" />
-            <text x={(x1 + x2) / 2 + W / 90} y={(y1 + y2) / 2} fontSize={W / 45} fontWeight={700} fill={bad ? "#c62828" : xray ? "#7c3f12" : "#fff"} stroke={xray ? "none" : "#0b1220"} strokeWidth={W / 900} paintOrder="stroke">
-              {r.id} · {r.lengthCm} cm
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
 }
 
 export default function WallMapper() {
@@ -114,7 +92,7 @@ export default function WallMapper() {
             ) : (
               <div className="grid aspect-[3/2] place-items-center text-sm text-muted">Choose a photo or use the sample</div>
             )}
-            {photo && mapped && <Overlay m={mapped} />}
+            {photo && mapped && <WallOverlay map={mapped.map} width={mapped.width} height={mapped.height} />}
           </div>
           {mapped && <div className="mt-1"><GateBadge gate={mapped.gate} /></div>}
         </figure>
@@ -134,7 +112,7 @@ export default function WallMapper() {
             ) : (
               <div className="grid aspect-[3/2] place-items-center p-6 text-center text-sm text-muted">The finished wall, with the mapped cables shown through it</div>
             )}
-            {render && mapped && xray && <Overlay m={mapped} xray />}
+            {render && mapped && xray && <WallOverlay map={mapped.map} width={mapped.width} height={mapped.height} xray />}
           </div>
           {render && <p className="mt-1 text-xs text-muted">Render is an illustration; the lines come from the measured map, not the render.</p>}
         </figure>
