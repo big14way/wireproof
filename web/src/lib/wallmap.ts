@@ -6,7 +6,7 @@ export const SAFE_ZONE_CITATION = "BS 7671 Reg. 522.6.202 (prescribed zones for 
 
 interface Box { left: number; top: number; right: number; bottom: number }
 interface Line { x1: number; y1: number; x2: number; y2: number; thickness: number; angleDeg: number }
-export interface SegmentedObject { id: string; box: Box; line?: Line; confidence?: number }
+export interface SegmentedObject { id: string; box: Box; lines?: Line[]; confidence?: number }
 
 export interface WallRun {
   id: string;
@@ -49,16 +49,14 @@ export function buildWallMap(input: { width: number; height: number; conduits: S
   const toCm = (x: number, y: number) => cmPerPx ? { x: r0((x - left) * cmPerPx.x), y: r0((floor - y) * cmPerPx.y) } : { x: r0(x), y: r0(height - y) };
 
   const runs: WallRun[] = [];
-  for (const c of input.conduits) {
-    const l = c.line;
-    if (!l) continue;
+  for (const c of input.conduits) for (const [k, l] of (c.lines ?? []).entries()) {
     const lenPx = Math.hypot(l.x2 - l.x1, l.y2 - l.y1);
     if (lenPx < 3 * Math.max(l.thickness, 4)) continue; // a blob, not a run
     const a = l.angleDeg;
     const orientation = a < 12 || a > 168 ? "horizontal" : Math.abs(a - 90) < 12 ? "vertical" : "diagonal";
     const from = toCm(l.x1, l.y1), to = toCm(l.x2, l.y2);
     runs.push({
-      id: c.id, orientation, from, to, lengthCm: r0(Math.hypot(to.x - from.x, to.y - from.y)),
+      id: c.lines!.length > 1 ? `${c.id}.${k + 1}` : c.id, orientation, from, to, lengthCm: r0(Math.hypot(to.x - from.x, to.y - from.y)),
       img: { x1: l.x1 / width, y1: l.y1 / height, x2: l.x2 / width, y2: l.y2 / height }, confidence: c.confidence,
     });
   }

@@ -9,7 +9,7 @@ const blocks: SegmentedObject[] = Array.from({ length: 12 }, (_, i) => {
 });
 const conduit = (id: string, x1: number, y1: number, x2: number, y2: number): SegmentedObject => ({
   id, box: { left: Math.min(x1, x2), top: Math.min(y1, y2), right: Math.max(x1, x2), bottom: Math.max(y1, y2) },
-  line: { x1, y1, x2, y2, thickness: 8, angleDeg: ((Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI + 180) % 180 },
+  lines: [{ x1, y1, x2, y2, thickness: 8, angleDeg: ((Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI + 180) % 180 }],
 });
 
 describe("wall map", () => {
