@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 interface Entry { at: string; route: string; model: string; bytes: number; digest: string; gate: string; reasons?: string[]; gateMs?: number; sent: boolean }
-interface Data { glimmer: { configured: boolean; model: string; host: string | null }; entries: Entry[] }
+interface Data { gate: { configured: boolean; name: string | null; host: string | null; where: string | null }; entries: Entry[] }
 
-/** Everything that left for Meta's hosted models, and everything Glimmer stopped before it could. */
+/** Everything that left for Meta's hosted models, and everything the privacy gate stopped before it could. */
 export default function EgressLog() {
   const [data, setData] = useState<Data | null>(null);
   useEffect(() => {
@@ -20,11 +20,15 @@ export default function EgressLog() {
     <div className="rounded-lg border border-line bg-card p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold">Egress log</h2>
-        <span className={`text-xs ${data?.glimmer.configured ? "text-pass" : "text-muted"}`}>
-          {data?.glimmer.configured ? `Glimmer gate on · ${data.glimmer.host}` : "Glimmer gate off"}
+        <span className={`text-xs ${data?.gate.configured ? "text-pass" : "text-muted"}`}>
+          {data?.gate.configured ? `Privacy gate on · ${data.gate.host}` : "Privacy gate off"}
         </span>
       </div>
-      <p className="mt-1 text-xs text-muted">Every photo is checked by Muse Glimmer (open weights, our server) before it may go to Meta&apos;s hosted models.</p>
+      <p className="mt-1 text-xs text-muted">
+        {!data || data.gate.configured
+          ? `Every photo is checked by ${data?.gate.name ?? "an open-weights model"} (open weights, ${data?.gate.where ?? "our server"}) before it may go to Meta's hosted models.`
+          : "No privacy gate is connected, so photos go to Meta's hosted models unchecked."}
+      </p>
       <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto text-xs">
         {!data?.entries.length && <li className="text-muted">Nothing sent yet.</li>}
         {data?.entries.map((e) => (

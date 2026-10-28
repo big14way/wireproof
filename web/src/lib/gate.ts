@@ -1,4 +1,4 @@
-// Pure decision logic for the Glimmer privacy gate, kept separate so it can be tested without a model.
+// Pure logic for the privacy gate, kept separate so it can be tested without a model.
 
 export type Scene = "cable_print" | "distribution_board" | "chased_wall" | "other";
 
@@ -49,4 +49,38 @@ export function decide(v: GateVerdict, expected?: Scene): GateDecision {
   if (!v.usable) warn.push(v.issue ? `Hard to read: ${v.issue}.` : "Hard to read: retake closer and steadier.");
   if (expected && v.scene !== expected && v.scene !== "other") warn.push(`This looks like a ${v.scene.replace("_", " ")}, not a ${expected.replace("_", " ")}.`);
   return { status: warn.length ? "warn" : "pass", reasons: warn };
+}
+
+/**
+ * Run `call`; if it hasn't settled after `after` ms, start a second identical call. The first to succeed wins and
+ * the other is aborted. It fails when every started call has failed, or when `limit` ms have passed.
+ */
+export function hedged<T>(call: (signal: AbortSignal) => Promise<T>, after: number | undefined, limit: number): Promise<T> {
+  const won = new AbortController();
+  const signal = AbortSignal.any([won.signal, AbortSignal.timeout(limit)]);
+  return new Promise<T>((resolve, reject) => {
+    let pending = 0;
+    let settled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const start = () => {
+      pending++;
+      call(signal).then(
+        (v) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          won.abort();
+          resolve(v);
+        },
+        (e) => {
+          if (--pending > 0 || settled) return;
+          settled = true;
+          clearTimeout(timer);
+          reject(e);
+        },
+      );
+    };
+    start();
+    if (after != null) timer = setTimeout(start, after);
+  });
 }

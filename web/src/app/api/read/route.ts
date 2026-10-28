@@ -1,9 +1,10 @@
 import { SPARK } from "@/lib/meta/client";
+import { gateConfigured } from "@/lib/meta/gatemodel";
 import { guarded } from "@/lib/meta/guard";
 import { readBoard, readCable, readMagnet } from "@/lib/meta/readers";
 import { checkDataUrl, errorResponse } from "../_errors";
 
-/** Read one photo or clip: a cable print, a distribution board, or a magnet test. Glimmer gates it first. */
+/** Read one photo or clip: a cable print, a distribution board, or a magnet test. The privacy gate checks it first. */
 export async function POST(request: Request) {
   try {
     const { task, media, poster } = await request.json();
@@ -19,8 +20,9 @@ export async function POST(request: Request) {
     }
     if (task === "magnet") {
       const clip = checkDataUrl(media, "video");
-      // Glimmer reads stills, so the gate checks a frame from the clip; the clip itself goes to Muse Spark.
+      // The gate reads stills, so it checks a frame from the clip; the clip itself goes to Muse Spark.
       const still = poster ? checkDataUrl(poster, "image") : null;
+      if (!still && gateConfigured()) return Response.json({ ok: false, error: "No still from the clip for the privacy gate to check, so it was not sent." }, { status: 422 });
       const run = () => readMagnet({ kind: "video", dataUrl: clip });
       const out = still ? await guarded({ route: "read/magnet", model: SPARK, media: still, expected: "cable_print" }, run) : { result: await run(), gate: { status: "off" as const } };
       return Response.json({ ok: true, task, ...out.result, gate: out.gate });

@@ -4,7 +4,7 @@ import { readBoard } from "@/lib/meta/readers";
 import { panelFindings } from "@/lib/panel";
 import { checkDataUrl, errorResponse } from "../_errors";
 
-/** "Read a breaker panel": Glimmer gates the photo, Muse Spark reads the devices, the rules judge the board. */
+/** "Read a breaker panel": the privacy gate checks the photo, Muse Spark reads the devices, the rules judge the board. */
 export async function POST(request: Request) {
   try {
     const { media } = await request.json();

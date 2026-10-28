@@ -128,7 +128,7 @@ function circuitLine(k: Circuit): string {
 
 /**
  * What Muse Spark sees at the start of a run: the case as text. No photos, no names, no address:
- * the model reads media only through tools, and every photo passes the Glimmer gate first.
+ * the model reads media only through tools, and every photo passes the privacy gate first.
  */
 export function caseBrief(c: CaseRecord, opts: { said: string; breakerOff: boolean; attached?: MediaRef; selected?: string }): string {
   const open = c.checklist.filter((i) => !i.done).map((i) => i.id);
@@ -138,7 +138,7 @@ export function caseBrief(c: CaseRecord, opts: { said: string; breakerOff: boole
   const recent = c.media.filter((m) => !m.generated).slice(-6).map((m) => `${m.id} ${m.kind}${m.hint ? ` (${HINT[m.hint]} button)` : ""}${m.circuitId ? `, circuit ${m.circuitId}` : ""}${m.posterId ? `, still ${m.posterId}` : ""}`);
   const history = c.runs.filter((r) => r.status === "done").slice(-3).map((r) => `Electrician: "${r.said}" → You: "${r.reply ?? ""}"`);
   const attached = opts.attached
-    ? `${opts.attached.id}: a ${opts.attached.kind} taken with the ${opts.attached.hint ? HINT[opts.attached.hint] : "camera"} button${opts.attached.posterId ? ` (Glimmer checks still ${opts.attached.posterId})` : ""}`
+    ? `${opts.attached.id}: a ${opts.attached.kind} taken with the ${opts.attached.hint ? HINT[opts.attached.hint] : "camera"} button${opts.attached.posterId ? ` (the privacy gate checks still ${opts.attached.posterId})` : ""}`
     : "nothing";
   return [
     `JOB: ${c.title}`,

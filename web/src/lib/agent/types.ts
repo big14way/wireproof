@@ -14,7 +14,7 @@ export interface MediaRef {
   /** Made by a model (the Muse Image render of a plastered wall), not captured on site. */
   generated?: boolean;
   circuitId?: string;
-  /** For a clip: the still Glimmer checks before the clip may leave. */
+  /** For a clip: the still the privacy gate checks before the clip may leave. */
   posterId?: string;
 }
 
@@ -56,7 +56,7 @@ export interface Turn {
   verified?: boolean;
   model?: string;
   ms: number;
-  gate?: { status: string; reasons?: string[]; ms?: number };
+  gate?: { status: string; reasons?: string[]; ms?: number; name?: string };
 }
 
 /** Numbers in model-written text that no tool, reading or electrician produced. */

@@ -24,7 +24,7 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-/** A still from the middle of a clip, for the privacy gate (Glimmer reads stills, not video). */
+/** A still from the middle of a clip, for the privacy gate (the gate reads stills, not video). */
 export async function posterFromClip(clip: Blob): Promise<string> {
   const url = URL.createObjectURL(clip);
   try {

@@ -2,10 +2,10 @@ import "server-only";
 import { logEgress, digest } from "@/lib/egress";
 import type { Scene } from "@/lib/gate";
 import { MetaApiError } from "./client";
-import { gate, type GateResult } from "./glimmer";
+import { gate, gateInfo, type GateResult } from "./gatemodel";
 
 /**
- * Every photo goes through the Glimmer gate before it is sent to Meta's hosted models, and every send is
+ * Every photo goes through the privacy gate before it is sent to Meta's hosted models, and every send is
  * written to the egress log. A blocked photo never leaves (422), and neither does one the gate couldn't check (503).
  */
 export async function guarded<T>(opts: { route: string; model: string; media: string; expected?: Scene }, send: () => Promise<T>): Promise<{ result: T; gate: GateResult }> {
@@ -14,10 +14,10 @@ export async function guarded<T>(opts: { route: string; model: string; media: st
   try {
     g = await gate(opts.media, opts.expected);
   } catch (e) {
-    // Glimmer is configured but didn't answer (cold start, network). Fail closed: sending anyway would break the promise.
+    // The gate is configured but didn't answer (cold start, network). Fail closed: sending anyway would break the promise.
     const reason = e instanceof Error ? e.message : String(e);
     await logEgress({ route: opts.route, model: opts.model, bytes, digest: digest(opts.media), gate: "error", reasons: [reason], sent: false });
-    throw new MetaApiError(503, "gate_unavailable", "The privacy gate (Muse Glimmer) didn't answer, so the photo was not sent. It may be starting up: try again in a minute.");
+    throw new MetaApiError(503, "gate_unavailable", `The privacy gate (${gateInfo().name}) didn't answer, so the photo was not sent. It may be starting up: try again in a minute.`);
   }
   if (g.status === "block") {
     await logEgress({ route: opts.route, model: opts.model, bytes, digest: digest(opts.media), gate: "block", reasons: g.reasons, gateMs: g.ms, sent: false });

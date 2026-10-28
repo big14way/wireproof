@@ -1,6 +1,6 @@
 import "server-only";
 import { MetaApiError, SAM, SPARK } from "@/lib/meta/client";
-import { glimmerConfigured, type GateResult } from "@/lib/meta/glimmer";
+import { gateConfigured, type GateResult } from "@/lib/meta/gatemodel";
 import { guarded } from "@/lib/meta/guard";
 import { editImage, MUSE_IMAGE, RENDERS } from "@/lib/meta/image";
 import { readBoard, readCable, readMagnet } from "@/lib/meta/readers";
@@ -92,7 +92,7 @@ const mediaOf = (c: CaseRecord, id: unknown, kind: MediaRef["kind"]): MediaRef =
   return m;
 };
 
-const gateInfo = (g: GateResult): Turn["gate"] => (g.status === "off" ? { status: "off" } : { status: g.status, reasons: g.reasons, ms: g.ms });
+const gateInfo = (g: GateResult): Turn["gate"] => (g.status === "off" ? { status: "off" } : { status: g.status, reasons: g.reasons, ms: g.ms, name: g.name });
 const device = (d: { curve?: string; ratingA: number }) => `${d.curve ?? ""}${d.ratingA || "?"} A`;
 
 /** Numbers the case already holds: design lengths and loads. A sizing question about an existing circuit may use them. */
@@ -189,10 +189,10 @@ async function magnetTest({ c, run }: ToolContext, a: Record<string, unknown>): 
   const k = circuitOf(c, a.circuit_id);
   const m = mediaOf(c, a.media_id, "clip");
   const poster = m.posterId ? c.media.find((x) => x.id === m.posterId) : undefined;
-  if (!poster && glimmerConfigured()) throw new ToolError(`${m.id} has no still for the privacy gate to check, so it can't be sent. Film the test again from the app.`);
+  if (!poster && gateConfigured()) throw new ToolError(`${m.id} has no still for the privacy gate to check, so it can't be sent. Film the test again from the app.`);
   const clip = await mediaDataUrl(c, m);
   const judge = () => readMagnet({ kind: "video", dataUrl: clip });
-  // Glimmer reads stills, so it checks a frame from the clip; the clip itself goes to Muse Spark.
+  // The gate reads stills, so it checks a frame from the clip; the clip itself goes to Muse Spark.
   const { result: r, gate } = poster
     ? await guarded({ route: "agent/magnet_test", model: SPARK, media: await mediaDataUrl(c, poster), expected: "cable_print" }, judge)
     : { result: await judge(), gate: { status: "off" } as GateResult };
@@ -381,7 +381,7 @@ export async function runTool(ctx: ToolContext, name: string, args: Record<strin
   } catch (e) {
     if (e instanceof ToolError) return { ok: false, observation: e.message };
     if (e instanceof MetaApiError && e.code === "privacy_block") {
-      return { ok: false, gate: { status: "block", reasons: [e.message] }, observation: `Glimmer blocked the photo before it left: ${e.message} Ask for a new shot without people or private details.` };
+      return { ok: false, gate: { status: "block", reasons: [e.message] }, observation: `The privacy gate blocked the photo before it left: ${e.message} Ask for a new shot without people or private details.` };
     }
     if (e instanceof MetaApiError) return { ok: false, observation: `${e.code === "gate_unavailable" ? "Privacy gate" : "Meta API"} error: ${e.message}` };
     console.error(`tool ${name} failed`, e);
