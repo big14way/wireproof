@@ -23,6 +23,32 @@ export default function PanelReader({ sample }: { sample: Result }) {
   const [live, setLive] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fixed, setFixed] = useState<{ image: string; ms: number } | null>(null);
+  const [rendering, setRendering] = useState(false);
+  const [isSample, setIsSample] = useState(false);
+
+  async function useSample() {
+    const blob = await (await fetch("/samples/board-sample.jpg")).blob();
+    const f = new File([blob], "board-sample.jpg", { type: "image/jpeg" });
+    setFile(f); setPreview(URL.createObjectURL(f)); setIsSample(true); setFixed(null);
+  }
+
+  async function showFixed() {
+    if (!file) return;
+    setRendering(true);
+    setError(null);
+    try {
+      const media = await imageToJpegDataUrl(file);
+      const res = await fetch("/api/render", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ media, kind: "board-fixed" }) });
+      const body = await res.json();
+      if (!body.ok) throw new Error(body.error);
+      setFixed({ image: body.image, ms: body.ms });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Render failed");
+    } finally {
+      setRendering(false);
+    }
+  }
 
   async function readPanel() {
     if (!file) return;
@@ -65,13 +91,27 @@ export default function PanelReader({ sample }: { sample: Result }) {
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
-              if (f) { setFile(f); setPreview(URL.createObjectURL(f)); }
+              if (f) { setFile(f); setPreview(URL.createObjectURL(f)); setIsSample(false); setFixed(null); }
             }}
           />
         </label>
-        <button onClick={readPanel} disabled={!file || busy} className="mt-3 w-full rounded-lg bg-copper py-3 text-sm font-semibold text-white disabled:opacity-40">
-          {busy ? "Reading with Muse Spark…" : "Read with Muse Spark"}
-        </button>
+        <button onClick={useSample} className="mt-3 w-full rounded-lg border border-line bg-card py-2 text-sm hover:border-copper">Use the sample board</button>
+        {isSample && <p className="mt-1 text-xs text-warn">Sample board is an AI-generated test photo (Muse Image); one breaker is deliberately mislabelled.</p>}
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button onClick={readPanel} disabled={!file || busy} className="rounded-lg bg-copper py-3 text-sm font-semibold text-white disabled:opacity-40">
+            {busy ? "Reading…" : "Read with Muse Spark"}
+          </button>
+          <button onClick={showFixed} disabled={!file || rendering} className="rounded-lg bg-ink py-3 text-sm font-semibold text-white disabled:opacity-40">
+            {rendering ? "Rendering…" : "Show it fixed (Muse Image)"}
+          </button>
+        </div>
+        {fixed && (
+          <figure className="mt-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={fixed.image} alt="The same board with an RCD, surge protection and labels" className="w-full rounded-xl border border-line" />
+            <figcaption className="mt-1 text-xs text-muted">Muse Image · {(fixed.ms / 1000).toFixed(1)} s · an illustration of the fix on your own board, not a wiring design.</figcaption>
+          </figure>
+        )}
         {error && <p className="mt-2 text-sm text-fail">{error}</p>}
         <p className="mt-2 text-xs text-muted">Photos are sent to Meta&apos;s Model API. Keep people and addresses out of the frame.</p>
       </div>

@@ -24,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <nav className="flex gap-4 text-sm text-white/80">
               <Link href="/jobs/demo" className="hover:text-white">Demo job</Link>
               <Link href="/jobs/demo/copilot" className="hover:text-white">Copilot</Link>
+              <Link href="/jobs/demo/walls" className="hover:text-white">Wall map</Link>
               <Link href="/panel" className="hover:text-white">Read a panel</Link>
             </nav>
           </div>

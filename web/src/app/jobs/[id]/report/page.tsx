@@ -74,7 +74,7 @@ async function ReportView(props: { params: PageProps<"/jobs/[id]/report">["param
 
         <h2 className="mt-6 font-semibold">Where your cables run</h2>
         <div className="mt-2 grid h-40 place-items-center rounded-lg border border-dashed border-line bg-paper text-sm text-muted">
-          Cable map appears here once the conduit runs are filmed (SAM 3.1 trace on the block grid).
+          Cable map appears here once the conduit runs are photographed (SAM 3.1 on the block grid, see Wall map).
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-6 border-t border-line pt-4 text-sm">

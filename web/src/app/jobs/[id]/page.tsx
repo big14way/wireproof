@@ -23,6 +23,7 @@ async function JobView(props: { params: PageProps<"/jobs/[id]">["params"] }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <ButtonLink href={`/jobs/${job.id}/copilot`} variant="ghost">Copilot</ButtonLink>
+          <ButtonLink href={`/jobs/${job.id}/walls`} variant="ghost">Wall map</ButtonLink>
           <ButtonLink href={`/jobs/${job.id}/console`} variant="ghost">Agent console</ButtonLink>
           <ButtonLink href={`/jobs/${job.id}/report`}>Owner report</ButtonLink>
         </div>
