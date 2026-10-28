@@ -9,6 +9,7 @@ describe("numbersIn", () => {
     expect(numbersIn("Use 2.5 square millimetre cable on a 10 amp breaker")).toEqual([2.5, 10]);
     expect(numbersIn("two point five square millimetre on a ten amp breaker")).toEqual([2.5, 10]);
     expect(numbersIn("1,200 W")).toEqual([1200]);
+    expect(numbersIn("2.5 mm2 cable")).toEqual([2.5]);
   });
   it("ignores number words that aren't quantities", () => {
     expect(numbersIn("Take one more photo of the print")).toEqual([]);

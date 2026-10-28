@@ -81,6 +81,40 @@ export async function sparkJSON<T>(opts: {
   return { data: JSON.parse(text) as T, usage: body.usage, model: SPARK, ms: Date.now() - started };
 }
 
+export type ResponseItem = { type: string } & Record<string, unknown>;
+
+/**
+ * One agent turn: Muse Spark sees the conversation so far and either calls tools or answers. Nothing is stored
+ * on Meta's side; the caller replays the items each turn, with reasoning carried in encrypted form.
+ */
+export async function sparkTurn(opts: {
+  instructions: string;
+  input: ResponseItem[];
+  tools: object[];
+  effort?: "minimal" | "low" | "medium" | "high";
+}): Promise<{ output: ResponseItem[]; usage?: Usage; ms: number }> {
+  const started = Date.now();
+  const res = await fetch(`${BASE}/responses`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: SPARK,
+      instructions: opts.instructions,
+      input: opts.input,
+      tools: opts.tools,
+      parallel_tool_calls: true,
+      reasoning: { effort: opts.effort ?? "low" },
+      max_output_tokens: 4000,
+      store: false,
+      include: ["reasoning.encrypted_content"],
+    }),
+  });
+  if (!res.ok) await fail(res);
+  const body = await res.json();
+  if (body.status === "incomplete") throw new MetaApiError(502, "incomplete", `Muse Spark stopped early: ${body.incomplete_details?.reason ?? "unknown reason"}`);
+  return { output: body.output ?? [], usage: body.usage, ms: Date.now() - started };
+}
+
 /** Transcribe a short WAV (mono 16-bit PCM, 16 or 24 kHz) with Muse Voice Transcribe. */
 export async function transcribe(wav: Blob, keywords: string[] = []): Promise<{ transcript: string; ms: number }> {
   const started = Date.now();

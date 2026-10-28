@@ -10,7 +10,7 @@ const key = (n: number) => String(Math.round(n * 1e6) / 1e6);
  * ("ten amps", "two point five square millimetre"). "One more photo" states no number.
  */
 export function numbersIn(text: string): number[] {
-  const plain = text.replace(/(\d),(\d{3})\b/g, "$1$2").replace(/\b(\d+) point (\d+)\b/gi, "$1.$2");
+  const plain = text.replace(/(\d),(\d{3})\b/g, "$1$2").replace(/\b(\d+) point (\d+)\b/gi, "$1.$2").replace(/mm2\b/gi, "mm²");
   const out = new Set([...plain.matchAll(/\d+(?:\.\d+)?/g)].map((m) => key(Number(m[0]))));
   for (const m of normaliseSpeech(plain).matchAll(new RegExp(String.raw`(\d+(?:\.\d+)?)\s*${UNIT}`, "g"))) out.add(key(Number(m[1])));
   return [...out].map(Number);

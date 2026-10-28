@@ -105,7 +105,18 @@ export interface CaseRecord {
   title: string;
   createdAt: string;
   board: Board;
-  boardRead?: { evidenceId: string; by: string; devices: BoardDevice[] };
+  /** The latest board reading, verified or not. It only reaches the board once verified (by code, or after the electrician's corrections). */
+  boardRead?: {
+    evidenceId: string;
+    by: string;
+    devices: BoardDevice[];
+    mainSwitch: boolean;
+    rcd: boolean;
+    spd: boolean;
+    labelled: boolean;
+    verified: boolean;
+    problems: string[];
+  };
   checklist: CaseChecklistItem[];
   media: MediaRef[];
   evidence: EvidenceRecord[];

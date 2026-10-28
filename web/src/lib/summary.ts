@@ -1,5 +1,5 @@
 import type { Job } from "./jobs";
-import { checkBoard, type Finding, type Status } from "./rules";
+import { checkBoard, type Board, type Finding, type Status } from "./rules";
 
 export interface FixGroup {
   fix: string;
@@ -9,7 +9,11 @@ export interface FixGroup {
 
 /** Run the rules over a whole job and group the actions so one fix that clears many flags reads as one. */
 export function summarise(job: Job) {
-  const board = checkBoard(job.board);
+  return summariseBoard(job.board);
+}
+
+export function summariseBoard(b: Board) {
+  const board = checkBoard(b);
   const all = [...board.findings, ...board.circuits.flatMap((c) => c.findings)];
   const count = (s: Status) => all.filter((f) => f.status === s).length;
 
