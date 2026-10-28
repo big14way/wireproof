@@ -8,7 +8,7 @@ async function CopilotView(props: { params: PageProps<"/jobs/[id]/copilot">["par
   const { id } = await props.params;
   const job = getJob(id);
   if (!job) notFound();
-  return <Copilot jobTitle={`${job.title} · ${job.address}`} />;
+  return <Copilot jobId={job.id} jobTitle={`${job.title} · ${job.address}`} circuits={job.board.circuits.map(({ id, name }) => ({ id, name }))} />;
 }
 
 // Reading params suspends; the skeleton keeps the page shell instant (Next 16 Cache Components).

@@ -131,7 +131,7 @@ export function caseBrief(c: CaseRecord, opts: { said: string; breakerOff: boole
     `SELECTED CIRCUIT IN THE APP: ${opts.selected ?? "none"}`,
     `CIRCUITS:\n${c.board.circuits.map(circuitLine).join("\n")}`,
     `BOARD: ${board}`,
-    `CHECKLIST OPEN: ${open.join(", ") || "none"}`,
+    `CHECKLIST: ${c.checklist.length - open.length} of ${c.checklist.length} done. Open: ${open.join(", ") || "none"}`,
     `MEMO: ${c.memo ? `${c.memo.status} (${c.memo.at})` : "not drafted"}`,
     `RECENT MEDIA: ${recent.join("; ") || "none"}`,
     history.length ? `EARLIER IN THIS JOB:\n${history.join("\n")}` : "",

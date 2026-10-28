@@ -24,6 +24,26 @@ export function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
+/** A still from the middle of a clip, for the privacy gate (Glimmer reads stills, not video). */
+export async function posterFromClip(clip: Blob): Promise<string> {
+  const url = URL.createObjectURL(clip);
+  try {
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.src = url;
+    await new Promise<void>((resolve, reject) => {
+      video.onloadeddata = () => resolve();
+      video.onerror = () => reject(new Error("Could not open the clip"));
+    });
+    video.currentTime = Math.min(1, (video.duration || 2) / 2);
+    await new Promise<void>((resolve) => (video.onseeked = () => resolve()));
+    return await imageToJpegDataUrl(video);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 /** Push-to-talk recorder. Muse Voice Transcribe's file endpoint wants mono 16-bit PCM WAV at 16 kHz. */
 export class PushToTalk {
   private recorder?: MediaRecorder;
