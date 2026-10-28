@@ -35,7 +35,7 @@ async function JobView(props: PageProps<"/jobs/[id]">) {
       <div className="mt-4"><DataSwitch href={`/jobs/${job.id}`} source={source} verified={live.evidence.filter((e) => e.verified).length} /></div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat value={String(board.circuits.length)} label="Circuits checked" />
+        <Stat value={String(board.circuits.length)} label="Circuits on the board" />
         <Stat value={String(counts.fail)} label="Must fix before plaster" tone="fail" />
         <Stat value={String(counts.warn)} label="To check" tone="warn" />
         <Stat value={String(fixes.length)} label="Distinct fixes" tone="ink" />
