@@ -11,7 +11,7 @@ export interface EgressEntry {
   bytes: number;
   /** First 16 hex chars of the SHA-256 of what was sent, so a photo can be matched without storing it. */
   digest: string;
-  gate: "pass" | "warn" | "block" | "off";
+  gate: "pass" | "warn" | "block" | "off" | "error";
   reasons?: string[];
   gateMs?: number;
   sent: boolean;

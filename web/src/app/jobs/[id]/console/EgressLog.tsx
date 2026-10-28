@@ -31,7 +31,7 @@ export default function EgressLog() {
           <li key={e.at + e.digest} className="rounded border border-line p-2">
             <div className="flex justify-between gap-2">
               <span className="font-mono">{e.route}</span>
-              <span className={e.sent ? "text-ink-2" : "font-semibold text-fail"}>{e.sent ? `sent → ${e.model}` : "blocked, not sent"}</span>
+              <span className={e.sent ? "text-ink-2" : "font-semibold text-fail"}>{e.sent ? `sent → ${e.model}` : e.gate === "error" ? "gate down, not sent" : "blocked, not sent"}</span>
             </div>
             <div className="mt-0.5 text-muted">
               {new Date(e.at).toLocaleTimeString()} · {(e.bytes / 1024).toFixed(0)} KB · sha256 {e.digest} · gate {e.gate}{e.gateMs ? ` (${(e.gateMs / 1000).toFixed(1)} s)` : ""}
