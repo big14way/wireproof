@@ -65,8 +65,8 @@ export function parseLoad(text: string): LoadProfile | null {
     const n = Number(hp[1]);
     return /pump|pumping/.test(t) ? pump(n) : airConditioner(n);
   }
-  const kw = t.match(/(\d+(?:\.\d+)?)\s*kw/);
-  const w = t.match(/(\d+(?:\.\d+)?)\s*w\b/);
+  const kw = t.match(/(\d+(?:\.\d+)?)\s*(?:kw|kilowatts?)\b/);
+  const w = t.match(/(\d+(?:\.\d+)?)\s*(?:w|watts?)\b/);
   const watts = kw ? Number(kw[1]) * 1000 : w ? Number(w[1]) : null;
   if (watts == null) return null;
   if (/heater|geyser/.test(t)) return waterHeater(watts);
