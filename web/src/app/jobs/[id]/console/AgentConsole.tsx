@@ -39,7 +39,7 @@ function RunCard({ run, open }: { run: Run; open: boolean }) {
                   {t.ok && t.verified && <StatusChip status="pass" label="Verified" />}
                   <span className="ml-auto font-mono text-xs text-muted">{secs(t.ms)}</span>
                 </div>
-                <div className="grid gap-3 px-3 py-2 text-sm sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 px-3 py-2 text-sm sm:grid-cols-3">
                   <div><div className="text-xs font-semibold uppercase text-muted">Plan</div><p className="mt-1">{t.why || TOOL_LABEL[t.tool]}</p></div>
                   <div>
                     <div className="text-xs font-semibold uppercase text-muted">Act</div>
@@ -96,7 +96,7 @@ export default function AgentConsole({ jobId }: { jobId: string }) {
   const memo = data.memo;
 
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
+    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
       <div>
         <div className="flex flex-wrap items-center gap-3 text-sm text-ink-2">
           <span>{count(data.runs.length, "request")}</span>·<span>{count(data.runs.reduce((n, r) => n + r.modelCalls, 0), "Muse Spark call")}</span>·

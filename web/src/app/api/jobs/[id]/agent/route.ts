@@ -82,7 +82,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/jobs/[id]/a
         controller.close();
       },
     });
-    return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store" } });
+    return new Response(stream, { headers: { "Content-Type": "application/x-ndjson; charset=utf-8", "Cache-Control": "no-store, no-transform" } });
   } catch (e) {
     return errorResponse(e);
   }

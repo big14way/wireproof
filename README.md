@@ -39,7 +39,7 @@ The model proposes; code decides:
 Turns are stateless: `store: false`, with encrypted reasoning replayed each turn. Meta keeps no copy of the conversation, and a turn takes about 2 s.
 
 ## Status
-- `web/` is the app (Next.js 16). Run it with `cd web && npm install && npm run dev`, then open http://localhost:3000. It needs `MODEL_API_KEY` in `web/.env.local`. `BASETEN_API_KEY` switches the privacy gate on with Muse Spark Open; `GLIMMER_BASE_URL` and `GLIMMER_API_KEY` use Muse Glimmer on our own server instead.
+- `web/` is the app (Next.js 16). Run it with `cd web && npm install && npm run dev`, then open http://localhost:3000. It needs `MODEL_API_KEY` in `web/.env.local`. `BASETEN_API_KEY` switches the privacy gate on with Muse Spark Open; `GLIMMER_BASE_URL` and `GLIMMER_API_KEY` use Muse Glimmer on our own server instead. To use it on a phone (camera and mic need HTTPS), run `npm run build && npm run start` and `cloudflared tunnel --url http://localhost:3000`; with `SITE_PASSCODE` set, every device except this machine must enter the passcode once.
   - **Agent** (`web/src/lib/agent`): loop, tools, case record and verification. `/api/jobs/[id]/agent` streams each tool call as it happens.
   - **Rules engine** (`web/src/lib/rules`): BS 7671 checks for cable capacity with ambient and grouping factors, breaker coordination, voltage drop, earth, 30 mA RCD, and fake cable (magnet test, printed size, SON alert brands). Run the tests with `npm test`.
   - **Screens:**

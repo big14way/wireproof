@@ -16,16 +16,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         <header className="no-print bg-ink text-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+            <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
               <span aria-hidden className="grid h-7 w-7 place-items-center rounded-md bg-copper text-sm">⚡</span>
               WireProof
             </Link>
-            <nav className="flex gap-4 text-sm text-white/80">
+            <nav className="flex gap-4 whitespace-nowrap text-sm text-white/80">
               <Link href="/jobs/demo" className="hover:text-white">Demo job</Link>
               <Link href="/jobs/demo/copilot" className="hover:text-white">Copilot</Link>
-              <Link href="/jobs/demo/walls" className="hover:text-white">Wall map</Link>
-              <Link href="/panel" className="hover:text-white">Read a panel</Link>
+              <Link href="/jobs/demo/walls" className="hidden hover:text-white sm:inline">Wall map</Link>
+              <Link href="/panel" className="hidden hover:text-white sm:inline">Read a panel</Link>
             </nav>
           </div>
         </header>
