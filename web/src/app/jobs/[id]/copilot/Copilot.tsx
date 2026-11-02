@@ -47,6 +47,7 @@ interface RunView {
   heardMs?: number;
   turns: Turn[];
   reply?: string;
+  replyPidgin?: string;
   check?: NumberCheck;
   error?: string;
   running: boolean;
@@ -89,6 +90,15 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [breakerOff, setBreakerOff] = useState(false);
   const [speak, setSpeak] = useState(true);
+  // An electrician who tried it asked for replies in Pidgin for those who don't follow English well. Remembered per phone.
+  const [pidgin, setPidgin] = useState(false);
+  useEffect(() => {
+    try { setPidgin(localStorage.getItem("wp.pidgin") === "1"); } catch { /* private mode */ }
+  }, []);
+  function choosePidgin(on: boolean) {
+    setPidgin(on);
+    try { localStorage.setItem("wp.pidgin", on ? "1" : "0"); } catch { /* private mode */ }
+  }
   const [selected, setSelected] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
   const [runs, setRuns] = useState<RunView[]>([]);
@@ -120,6 +130,7 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
     setNotice(null);
     form.set("breakerOff", breakerOff ? "1" : "0");
     if (selected) form.set("circuitId", selected);
+    if (pidgin) form.set("lang", "pidgin");
     const key = Date.now();
     const update = (fn: (r: RunView) => RunView) => setRuns((prev) => prev.map((r) => (r.key === key ? fn(r) : r)));
     setRuns((prev) => [{ key, said: (form.get("text") as string) || undefined, turns: [], running: true }, ...prev]);
@@ -138,8 +149,9 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
           update((r) => ({ ...r, turns: [...r.turns, e.turn] }));
           setBusy(`${TOOL_LABEL[e.turn.tool] ?? e.turn.tool} done · Muse Spark is deciding the next step…`);
         } else if (e.type === "done") {
-          update((r) => ({ ...r, reply: e.run.reply, check: e.run.replyCheck, ms: e.run.ms, modelCalls: e.run.modelCalls, running: false }));
-          if (speak && e.run.reply && "speechSynthesis" in window) sayAloud(e.run.reply);
+          update((r) => ({ ...r, reply: e.run.reply, replyPidgin: e.run.replyPidgin, check: e.run.replyCheck, ms: e.run.ms, modelCalls: e.run.modelCalls, running: false }));
+          const spoken = e.run.replyPidgin ?? e.run.reply;
+          if (speak && spoken && "speechSynthesis" in window) sayAloud(spoken);
         } else if (e.type === "error") {
           update((r) => ({ ...r, error: e.message, running: false }));
         }
@@ -324,10 +336,16 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
               <button key={s} type="button" onClick={() => ask(s)} disabled={!!busy} className="rounded-full border border-line px-3 py-1 text-xs hover:border-copper disabled:opacity-50">{s}</button>
             ))}
           </div>
-          <label className="mt-2 flex items-center gap-2 text-xs text-muted">
-            <input type="checkbox" checked={speak} onChange={(e) => setSpeak(e.target.checked)} className="accent-copper" />
-            Read replies aloud
-          </label>
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={speak} onChange={(e) => setSpeak(e.target.checked)} className="accent-copper" />
+              Read replies aloud
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={pidgin} onChange={(e) => choosePidgin(e.target.checked)} className="accent-copper" />
+              Talk Pidgin
+            </label>
+          </div>
         </form>
 
         <div className="mt-4 space-y-3">
@@ -345,7 +363,8 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
               )}
               {r.turns.length > 0 && <ol className="mt-2 space-y-1.5">{r.turns.map((t) => <Step key={t.n} t={t} />)}</ol>}
               {r.running && <p className="mt-2 animate-pulse text-sm text-muted">Working…</p>}
-              {r.reply && <p className="mt-3 text-xl font-semibold leading-snug">{r.reply}</p>}
+              {r.reply && <p className="mt-3 text-xl font-semibold leading-snug">{r.replyPidgin ?? r.reply}</p>}
+              {r.replyPidgin && <p className="mt-1 text-sm text-muted">{r.reply}</p>}
               {r.check && !r.check.ok && (
                 <p className="mt-1 text-sm text-warn">Unverified: {r.check.unknown.join(", ")} didn&apos;t come from any tool or reading. Trust the steps above, not this number.</p>
               )}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EvidenceRecord } from "./types";
-import { canTick, checkNumbers, initialChecklist, numbersIn, saidNumber } from "./verify";
+import { canTick, checkNumbers, initialChecklist, numbersIn, saidNumber, sameNumbers } from "./verify";
 
 const tool = "2.5 mm² cable on a 10 A type C breaker — voltage drop 0.7% over 15 m.";
 
@@ -56,5 +56,15 @@ describe("checklist", () => {
   });
   it("never lets the agent sign off for the electrician", () => {
     expect(canTick("confirm", ["e1"], [ev({ proves: ["confirm"] })]).ok).toBe(false);
+  });
+});
+
+describe("sameNumbers (the Pidgin guard)", () => {
+  it("accepts a translation that keeps every number", () => {
+    expect(sameNumbers("Na 2.5 mm² cable for 10 amps type C breaker.", "2.5 mm² cable on a 10 A type C breaker.")).toBe(true);
+  });
+  it("rejects a translation that changes or drops a number", () => {
+    expect(sameNumbers("Na 2.5 mm² cable for 16 amps breaker.", "2.5 mm² cable on a 10 A breaker.")).toBe(false);
+    expect(sameNumbers("Na 2.5 mm² cable.", "2.5 mm² cable on a 10 A breaker.")).toBe(false);
   });
 });

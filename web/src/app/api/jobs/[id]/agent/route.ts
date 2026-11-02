@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { addMedia, getCase, resetCase } from "@/lib/agent/case";
 import { runAgent } from "@/lib/agent/loop";
+import { REPLY_LANGS } from "@/lib/agent/pidgin";
 import type { AgentEvent, MediaRef } from "@/lib/agent/types";
 import { getJob } from "@/lib/jobs";
 import { transcribe, VOICE } from "@/lib/meta/client";
@@ -42,6 +43,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/jobs/[id]/a
     const selectedRaw = form.get("circuitId");
     const selected = job.board.circuits.find((k) => k.id === selectedRaw)?.id;
     const breakerOff = form.get("breakerOff") === "1";
+    const lang = REPLY_LANGS.find((l) => l === form.get("lang"));
 
     let said = String(form.get("text") ?? "").trim();
     let heard: { transcript: string; ms: number } | undefined;
@@ -75,7 +77,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/jobs/[id]/a
         const send = (e: AgentEvent) => controller.enqueue(encoder.encode(JSON.stringify(e) + "\n"));
         try {
           if (heard) send({ type: "heard", said, ms: heard.ms });
-          for await (const e of runAgent(job, { said, heardBy: heard ? VOICE : undefined, heardMs: heard?.ms, attached, selected, breakerOff })) send(e);
+          for await (const e of runAgent(job, { said, heardBy: heard ? VOICE : undefined, heardMs: heard?.ms, attached, selected, breakerOff, lang })) send(e);
         } catch (e) {
           send({ type: "error", message: e instanceof Error ? e.message : "The agent failed" });
         }

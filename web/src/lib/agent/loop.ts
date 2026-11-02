@@ -4,6 +4,7 @@ import { sparkTurn, type ResponseItem } from "@/lib/meta/client";
 import { caseBrief, getCase, saveCase } from "./case";
 import { runTool, TOOLS } from "./tools";
 import type { AgentEvent, MediaRef, Run, Turn } from "./types";
+import { toPidgin, type ReplyLang } from "./pidgin";
 import { checkNumbers } from "./verify";
 
 /** Model calls per request. A cable read and its follow-ups take three; more means the agent is lost. */
@@ -54,7 +55,7 @@ function parseArgs(raw: string): Record<string, unknown> {
  */
 export async function* runAgent(
   job: Job,
-  input: { said: string; heardBy?: string; heardMs?: number; attached?: MediaRef; selected?: string; breakerOff: boolean },
+  input: { said: string; heardBy?: string; heardMs?: number; attached?: MediaRef; selected?: string; breakerOff: boolean; lang?: ReplyLang },
 ): AsyncGenerator<AgentEvent> {
   const c = await getCase(job);
   const started = Date.now();
@@ -103,6 +104,11 @@ export async function* runAgent(
       }
     }
     run.replyCheck = checkNumbers(run.reply, [brief, ...run.turns.map((t) => t.observation)]);
+    if (input.lang === "pidgin" && run.replyCheck.ok) {
+      // One more Spark call; the English stays the record. If a number changed in translation, the English is spoken.
+      run.modelCalls++;
+      run.replyPidgin = (await toPidgin(run.reply)).text;
+    }
     run.status = "done";
   } catch (e) {
     run.status = "error";

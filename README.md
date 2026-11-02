@@ -16,7 +16,7 @@ Built from scratch for the [Meta Global AI Developer Hackathon](https://cerebral
 |---|---|
 | The agent: plans each step and calls the tools | Muse Spark (tool calling) |
 | Read cable prints, breakers, RCDs and nameplates; judge the magnet test | Muse Spark (vision, video) |
-| Hands-free questions from the electrician | Muse Voice Transcribe |
+| Hands-free questions from the electrician; replies in English or Nigerian Pidgin | Muse Voice Transcribe, Muse Spark |
 | Trace conduit runs in a chased wall | SAM 3.1 |
 | Show "your wall after plaster" with an X-ray of the runs, and "your board, corrected" | Muse Image |
 | Privacy gate: checks every photo for faces, people and private text before it leaves | Muse Spark Open (open weights, on Baseten), or Muse Glimmer on our own server |
@@ -101,7 +101,9 @@ Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `pr
 | Voice commands | 25 lines, Nigerian English, 5 over background noise | pending: recorded with `probe/record_voice.sh` |
 
 ### Tried by an electrician
-The phone footage in the video (starting a job, then talking to the copilot) was recorded by a working electrician on their own phone, not by us. They set up a three-bedroom bungalow on the live site, asked the copilot about the kitchen circuit, and were told the answer out loud. That is the only outside use so far; we are collecting more.
+The phone footage in the video (starting a job, then talking to the copilot) was recorded by a working electrician on their own phone, not by us. They set up a three-bedroom bungalow on the live site, asked the copilot about the kitchen circuit, and were told the answer out loud. Their verdict: it makes sense and electricians will like it, but the copilot's words need to be clearer, more like Nigerian Pidgin, for those who don't follow English well.
+
+So the copilot now has a **Talk Pidgin** switch. The agent still writes its answer in English, and code still checks every number in it. Then Muse Spark renders that answer in Nigerian Pidgin, and code checks the Pidgin states exactly the same numbers as the English; if a size or a rating changed in translation, the English is spoken instead (`web/src/lib/agent/pidgin.ts`). For example, asked about the kitchen ring: "Kitchen ring need 2.5 mm² for 32 A type B breaker. Off and lock the breaker, tick box for app then send lighting earth check." That is the only outside use so far; we are collecting more.
 
 What "verified" means: code, not the model, checks that the size is one cable is made in, that it appears in the text copied off the sheath, and that the confidence is above 0.6. A reading that fails is kept as evidence but never changes a circuit; the electrician is asked for another photo.
 

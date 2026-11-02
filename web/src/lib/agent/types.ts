@@ -78,6 +78,8 @@ export interface Run {
   modelCalls: number;
   reply?: string;
   replyCheck?: NumberCheck;
+  /** The reply in Nigerian Pidgin, when asked for and only if every number matches the English. */
+  replyPidgin?: string;
   status: "running" | "done" | "error";
   error?: string;
   ms?: number;

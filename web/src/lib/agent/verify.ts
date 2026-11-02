@@ -26,6 +26,12 @@ export function checkNumbers(text: string, sources: string[]): NumberCheck {
   return { ok: unknown.length === 0, unknown };
 }
 
+/** True when two texts state exactly the same set of numbers. A translation that drops or changes one fails. */
+export function sameNumbers(a: string, b: string): boolean {
+  const ka = new Set(numbersIn(a).map(key)), kb = new Set(numbersIn(b).map(key));
+  return ka.size === kb.size && [...ka].every((k) => kb.has(k));
+}
+
 /** True when the electrician actually said this number. Stops the model filling in a length or load it imagined. */
 export function saidNumber(said: string, n: number): boolean {
   return numbersIn(said).some((x) => key(x) === key(n));
