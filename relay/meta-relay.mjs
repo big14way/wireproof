@@ -75,26 +75,57 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, "127.0.0.1", () => console.log(`relay listening on http://127.0.0.1:${PORT}`));
 
-// --- Cloudflare quick tunnel: prints its https://*.trycloudflare.com address on stderr. ---
+// --- Cloudflare quick tunnel: prints its https://*.trycloudflare.com address on stderr. A quick tunnel can die
+// silently while cloudflared keeps running, so before every check-in the relay fetches its own public address and
+// starts a fresh tunnel (new address) if that fails. ---
 let tunnel = null;
-const cf = spawn("cloudflared", ["tunnel", "--url", `http://127.0.0.1:${PORT}`, "--no-autoupdate"], { stdio: ["ignore", "pipe", "pipe"] });
-cf.on("exit", (code) => {
-  console.error(`cloudflared exited (${code}); stopping`);
-  process.exit(1);
-});
-for (const stream of [cf.stdout, cf.stderr]) {
-  stream.on("data", (d) => {
-    const m = String(d).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
-    if (m && m[0] !== tunnel) {
-      tunnel = m[0];
-      console.log(`tunnel up at ${tunnel}`);
-      checkIn();
-    }
+let cf = null;
+function startTunnel() {
+  tunnel = null;
+  cf = spawn("cloudflared", ["tunnel", "--url", `http://127.0.0.1:${PORT}`, "--no-autoupdate"], { stdio: ["ignore", "pipe", "pipe"] });
+  const proc = cf;
+  proc.on("exit", (code) => {
+    if (proc !== cf) return; // replaced on purpose
+    console.error(`cloudflared exited (${code}); starting a new tunnel in 5 s`);
+    setTimeout(startTunnel, 5000);
   });
+  for (const stream of [proc.stdout, proc.stderr]) {
+    stream.on("data", (d) => {
+      const m = String(d).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+      if (m && m[0] !== tunnel && proc === cf) {
+        tunnel = m[0]; tunnelSince = Date.now(); failures = 0;
+        console.log(`${new Date().toISOString()} tunnel up at ${tunnel}`);
+        setTimeout(checkIn, 15_000);
+      }
+    });
+  }
+}
+startTunnel();
+
+async function tunnelAlive() {
+  if (!tunnel) return false;
+  try {
+    const r = await fetch(`${tunnel}/healthz`, { signal: AbortSignal.timeout(10_000) });
+    return r.ok;
+  } catch {
+    return false;
+  }
 }
 
+let tunnelSince = 0;
+let failures = 0;
 async function checkIn() {
   if (!tunnel) return;
+  // A new quick tunnel takes up to a minute to become reachable: give it that, then three strikes before replacing it.
+  if (!(await tunnelAlive())) {
+    const age = Date.now() - tunnelSince;
+    failures += 1;
+    if (age < 90_000) { console.log(`${new Date().toISOString()} tunnel not reachable yet (${Math.round(age / 1000)} s old); waiting`); failures = 0; return; }
+    console.error(`${new Date().toISOString()} tunnel ${tunnel} not answering (${failures}/3)`);
+    if (failures >= 3) { const old = cf; startTunnel(); old?.kill(); }
+    return;
+  }
+  failures = 0;
   try {
     const r = await fetch(`${HOST}/api/relay`, {
       method: "POST",
@@ -108,9 +139,9 @@ async function checkIn() {
     console.error(`check-in failed: ${e.message}`);
   }
 }
-setInterval(checkIn, 60_000);
+setInterval(checkIn, 30_000);
 
 process.on("SIGINT", () => {
-  cf.kill();
+  cf?.kill();
   process.exit(0);
 });
