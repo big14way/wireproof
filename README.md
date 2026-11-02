@@ -47,8 +47,20 @@ Turns are stateless: `store: false`, with encrypted reasoning replayed each turn
     - agent console: every run step by step, the case record, the checklist, and the memo with the electrician's sign-off;
     - wall map: conduit runs and the no-drill zones on a chased wall, plus the X-ray over the plastered render;
     - panel reader: photograph a breaker panel and see what's wrong;
-    - job overview, circuit detail and printable owner report.
+    - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp.
+  - **Sending the report:** the WhatsApp button opens a message with the verdict, the first fixes, whether the electrician has signed it off, and a share link. The link opens that one report and the photos on it without the passcode; it can't reach the copilot, the console, other jobs, or a photo the privacy gate blocked. Changing `SITE_PASSCODE` revokes every share link.
   - **Demo data:** a sample first-fix job. The people and the faulty cable brand are made up, and the sample photos are AI-generated test images.
+
+## Deploy
+The app is one Node server with a data folder, so it runs as a container with a volume (`web/Dockerfile`).
+
+1. Save the job you want visitors to see as the seed: capture it locally, then `cd web && npm run seed:save`. A deploy with no saved case opens on `web/seed/`. By default only media a reading used is copied, so nothing the privacy gate blocked is published.
+2. Build and run: `docker build -t wireproof web/`, then `docker run -p 3000:3000 --env-file web/.env.local -v wireproof-data:/data wireproof`. On a host, set the same variables (`MODEL_API_KEY`, `BASETEN_API_KEY`, `SITE_PASSCODE`) and mount a volume at `/data`. On Railway, also set `RAILWAY_RUN_UID=0` so the app can write to the volume.
+3. **Open `/api/health` on the host before anything else.** Some cloud regions get an empty model list from Meta's API with a key that works elsewhere. A healthy host returns `"ok": true` and lists `muse-spark-1.3`, `sam-3.1`, `muse-voice-transcribe-1.0` and `muse-image-1.0`. The check spends no credits.
+
+The image sets `WIREPROOF_HOSTED=1`: requests addressed to `localhost` no longer skip the passcode, and "start again" in the console restores the seeded job instead of an empty one.
+
+If no host region reaches Meta's API, run it from this machine instead: `npm run build && npm run start`, plus a Cloudflare tunnel.
 - `infra/glimmer_modal.py` serves Muse Glimmer with llama.cpp on a Modal GPU, as the alternative privacy gate.
 - `probe/` holds the go/no-go tests that check Meta's models can read cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
 

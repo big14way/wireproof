@@ -4,21 +4,33 @@ import path from "node:path";
 import { digest } from "@/lib/egress";
 import type { Job } from "@/lib/jobs";
 import { SAM } from "@/lib/meta/client";
+import { DATA_DIR, HOSTED, SEED_DIR } from "@/lib/paths";
 import type { Circuit, Finding } from "@/lib/rules";
 import type { CaseRecord, EvidenceRecord, MediaRef } from "./types";
 import { initialChecklist } from "./verify";
 
 /**
  * The case record: everything the agent has read, heard and decided on one job, kept so a person can
- * check every step. One JSON file per job, plus the captured media beside it.
+ * check every step. One JSON file per job, plus the captured media beside it. A job with no saved case
+ * starts from its seed, if one is committed, and the seed's media is read from there.
  */
-const DIR = path.join(process.cwd(), ".data", "cases");
+const DIR = path.join(DATA_DIR, "cases");
+const SEED = path.join(SEED_DIR, "cases");
 const cases = new Map<string, CaseRecord>();
 // Media also lives in memory so a read-only host (serverless) still works for the length of a demo.
 const media = new Map<string, string>();
 
-const file = (jobId: string) => path.join(DIR, `${jobId}.json`);
-const mediaFile = (jobId: string, ref: MediaRef) => path.join(DIR, jobId, `${ref.id}.${ref.mime.split("/")[1]}`);
+// Runtime data, not code: the ignore comments keep the build from bundling the whole project into the server.
+const file = (jobId: string, dir = DIR) => path.join(/*turbopackIgnore: true*/ dir, `${jobId}.json`);
+const mediaFile = (jobId: string, ref: MediaRef, dir = DIR) => path.join(/*turbopackIgnore: true*/ dir, jobId, `${ref.id}.${ref.mime.split("/")[1]}`);
+
+async function seedCase(jobId: string): Promise<CaseRecord | null> {
+  try {
+    return JSON.parse(await readFile(file(jobId, SEED), "utf8"));
+  } catch {
+    return null;
+  }
+}
 
 /** A fresh case starts from the job's design: circuits, loads and lengths, but no readings yet. */
 export function newCase(job: Job): CaseRecord {
@@ -41,7 +53,7 @@ export async function getCase(job: Job): Promise<CaseRecord> {
   try {
     c = JSON.parse(await readFile(file(job.id), "utf8"));
   } catch {
-    c = newCase(job);
+    c = (await seedCase(job.id)) ?? newCase(job);
   }
   cases.set(job.id, c);
   return c;
@@ -57,7 +69,7 @@ export async function saveCase(c: CaseRecord): Promise<void> {
 }
 
 export async function resetCase(job: Job): Promise<CaseRecord> {
-  const c = newCase(job);
+  const c = (HOSTED && (await seedCase(job.id))) || newCase(job);
   cases.set(job.id, c);
   for (const k of [...media.keys()]) if (k.startsWith(`${job.id}/`)) media.delete(k);
   await rm(path.join(DIR, job.id), { recursive: true, force: true }).catch(() => {});
@@ -86,9 +98,29 @@ export async function addMedia(c: CaseRecord, dataUrl: string, extra: Pick<Media
 export async function mediaDataUrl(c: CaseRecord, ref: MediaRef): Promise<string> {
   const hit = media.get(`${c.jobId}/${ref.id}`);
   if (hit) return hit;
-  const url = `data:${ref.mime};base64,${(await readFile(mediaFile(c.jobId, ref))).toString("base64")}`;
+  const bytes = await readFile(/*turbopackIgnore: true*/ mediaFile(c.jobId, ref)).catch(() => readFile(/*turbopackIgnore: true*/ mediaFile(c.jobId, ref, SEED)));
+  const url = `data:${ref.mime};base64,${bytes.toString("base64")}`;
   media.set(`${c.jobId}/${ref.id}`, url);
   return url;
+}
+
+/** The photos and clips the owner's report shows: verified readings (with their stills) and verified wall maps. */
+export function reportMediaIds(c: CaseRecord): Set<string> {
+  const verified = c.evidence.filter((e) => e.verified);
+  const ids = new Set<string>();
+  for (const e of verified) {
+    if (!e.mediaId) continue;
+    ids.add(e.mediaId);
+    const poster = c.media.find((m) => m.id === e.mediaId)?.posterId;
+    if (poster) ids.add(poster);
+  }
+  const verifiedIds = new Set(verified.map((e) => e.id));
+  for (const w of c.walls ?? []) {
+    if (!verifiedIds.has(w.evidenceId)) continue;
+    ids.add(w.mediaId);
+    if (w.renderMediaId) ids.add(w.renderMediaId);
+  }
+  return ids;
 }
 
 export function addEvidence(c: CaseRecord, e: Omit<EvidenceRecord, "id" | "at">): EvidenceRecord {

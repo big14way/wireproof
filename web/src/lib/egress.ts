@@ -2,6 +2,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
+import { DATA_DIR } from "@/lib/paths";
 
 /** One record per piece of media that left for Meta's hosted API, or was stopped before it could. */
 export interface EgressEntry {
@@ -17,7 +18,7 @@ export interface EgressEntry {
   sent: boolean;
 }
 
-const FILE = path.join(process.cwd(), ".data", "egress.jsonl");
+const FILE = path.join(DATA_DIR, "egress.jsonl");
 
 export function digest(media: string): string {
   return createHash("sha256").update(media).digest("hex").slice(0, 16);

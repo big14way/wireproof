@@ -1,0 +1,1265 @@
+{
+ "jobId": "demo",
+ "title": "3-bedroom bungalow, first fix",
+ "createdAt": "2026-10-28T10:39:40.511Z",
+ "board": {
+  "id": "db1",
+  "name": "Main distribution board",
+  "circuits": [
+   {
+    "id": "lighting",
+    "name": "Lighting, whole house",
+    "kind": "lighting",
+    "loadW": 320,
+    "lengthM": 28,
+    "designSize": 1.5,
+    "domestic": true,
+    "cable": {}
+   },
+   {
+    "id": "kitchen",
+    "name": "Kitchen sockets (ring)",
+    "kind": "sockets-ring",
+    "lengthM": 42,
+    "designSize": 2.5,
+    "domestic": true,
+    "cable": {
+     "printedSize": {
+      "value": 2.5,
+      "evidence": {
+       "id": "e7",
+       "kind": "photo",
+       "by": "muse-spark-1.3",
+       "confidence": 0.95,
+       "note": "“COPPERLINE 2.5mm² 450/750V NIS 1:2019”",
+       "src": "/api/jobs/demo/media/m8"
+      }
+     },
+     "brand": {
+      "value": "COPPERLINE",
+      "evidence": {
+       "id": "e7",
+       "kind": "photo",
+       "by": "muse-spark-1.3",
+       "confidence": 0.95,
+       "note": "“COPPERLINE 2.5mm² 450/750V NIS 1:2019”",
+       "src": "/api/jobs/demo/media/m8"
+      }
+     },
+     "sonMark": {
+      "value": "NIS 1:2019",
+      "evidence": {
+       "id": "e7",
+       "kind": "photo",
+       "by": "muse-spark-1.3",
+       "confidence": 0.95,
+       "note": "“COPPERLINE 2.5mm² 450/750V NIS 1:2019”",
+       "src": "/api/jobs/demo/media/m8"
+      }
+     },
+     "cpcPresent": {
+      "value": true,
+      "evidence": {
+       "id": "e6",
+       "kind": "voice",
+       "by": "electrician",
+       "note": "“Breaker 3 feeds the kitchen ring, and the green and yellow earth is in the kitchen conduit.”"
+      }
+     }
+    },
+    "device": {
+     "value": {
+      "type": "MCB",
+      "ratingA": 32,
+      "curve": "B"
+     },
+     "evidence": {
+      "id": "e5",
+      "kind": "photo",
+      "by": "muse-spark-1.3",
+      "note": "Breaker #3: B32 A",
+      "src": "/api/jobs/demo/media/m3"
+     }
+    },
+    "rcd30mA": {
+     "value": false,
+     "evidence": {
+      "id": "e5",
+      "kind": "photo",
+      "by": "muse-spark-1.3",
+      "note": "Breaker #3: B32 A",
+      "src": "/api/jobs/demo/media/m3"
+     }
+    }
+   },
+   {
+    "id": "ac-master",
+    "name": "Master bedroom AC (1.5 HP)",
+    "kind": "air-conditioner",
+    "loadW": 1200,
+    "powerFactor": 0.85,
+    "lengthM": 18,
+    "designSize": 2.5,
+    "domestic": true,
+    "cable": {}
+   },
+   {
+    "id": "heater",
+    "name": "Bathroom water heater (3 kW)",
+    "kind": "water-heater",
+    "loadW": 3000,
+    "lengthM": 12,
+    "designSize": 2.5,
+    "servesBathroom": true,
+    "domestic": true,
+    "cable": {}
+   },
+   {
+    "id": "pump",
+    "name": "Pumping machine (1 HP)",
+    "kind": "pump",
+    "loadW": 1050,
+    "powerFactor": 0.8,
+    "lengthM": 25,
+    "designSize": 2.5,
+    "domestic": true,
+    "cable": {}
+   }
+  ],
+  "mainSwitch": {
+   "value": true,
+   "evidence": {
+    "id": "e3",
+    "kind": "photo",
+    "by": "muse-spark-1.3 + electrician",
+    "note": "Board read e2, corrected by eye"
+   }
+  },
+  "rcdPresent": {
+   "value": false,
+   "evidence": {
+    "id": "e3",
+    "kind": "photo",
+    "by": "muse-spark-1.3 + electrician",
+    "note": "Board read e2, corrected by eye"
+   }
+  },
+  "spdPresent": {
+   "value": false,
+   "evidence": {
+    "id": "e3",
+    "kind": "photo",
+    "by": "muse-spark-1.3 + electrician",
+    "note": "Board read e2, corrected by eye"
+   }
+  },
+  "labelled": {
+   "value": true,
+   "evidence": {
+    "id": "e3",
+    "kind": "photo",
+    "by": "muse-spark-1.3 + electrician",
+    "note": "Board read e2, corrected by eye"
+   }
+  }
+ },
+ "checklist": [
+  {
+   "id": "board",
+   "label": "Distribution board read, cover off",
+   "done": true,
+   "evidenceIds": [
+    "e3"
+   ],
+   "by": "agent"
+  },
+  {
+   "id": "walls",
+   "label": "Conduit runs mapped before plaster",
+   "done": true,
+   "evidenceIds": [
+    "e1"
+   ],
+   "by": "agent"
+  },
+  {
+   "id": "cable:lighting",
+   "label": "Lighting, whole house: cable print read",
+   "circuitId": "lighting",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "magnet:lighting",
+   "label": "Lighting, whole house: magnet test",
+   "circuitId": "lighting",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "breaker:lighting",
+   "label": "Lighting, whole house: breaker identified",
+   "circuitId": "lighting",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "earth:lighting",
+   "label": "Lighting, whole house: earth conductor checked",
+   "circuitId": "lighting",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "cable:kitchen",
+   "label": "Kitchen sockets (ring): cable print read",
+   "circuitId": "kitchen",
+   "done": true,
+   "evidenceIds": [
+    "e7"
+   ],
+   "by": "agent"
+  },
+  {
+   "id": "magnet:kitchen",
+   "label": "Kitchen sockets (ring): magnet test",
+   "circuitId": "kitchen",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "breaker:kitchen",
+   "label": "Kitchen sockets (ring): breaker identified",
+   "circuitId": "kitchen",
+   "done": true,
+   "evidenceIds": [
+    "e5"
+   ],
+   "by": "agent"
+  },
+  {
+   "id": "earth:kitchen",
+   "label": "Kitchen sockets (ring): earth conductor checked",
+   "circuitId": "kitchen",
+   "done": true,
+   "evidenceIds": [
+    "e6"
+   ],
+   "by": "agent"
+  },
+  {
+   "id": "cable:ac-master",
+   "label": "Master bedroom AC (1.5 HP): cable print read",
+   "circuitId": "ac-master",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "magnet:ac-master",
+   "label": "Master bedroom AC (1.5 HP): magnet test",
+   "circuitId": "ac-master",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "breaker:ac-master",
+   "label": "Master bedroom AC (1.5 HP): breaker identified",
+   "circuitId": "ac-master",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "earth:ac-master",
+   "label": "Master bedroom AC (1.5 HP): earth conductor checked",
+   "circuitId": "ac-master",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "cable:heater",
+   "label": "Bathroom water heater (3 kW): cable print read",
+   "circuitId": "heater",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "magnet:heater",
+   "label": "Bathroom water heater (3 kW): magnet test",
+   "circuitId": "heater",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "breaker:heater",
+   "label": "Bathroom water heater (3 kW): breaker identified",
+   "circuitId": "heater",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "earth:heater",
+   "label": "Bathroom water heater (3 kW): earth conductor checked",
+   "circuitId": "heater",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "cable:pump",
+   "label": "Pumping machine (1 HP): cable print read",
+   "circuitId": "pump",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "magnet:pump",
+   "label": "Pumping machine (1 HP): magnet test",
+   "circuitId": "pump",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "breaker:pump",
+   "label": "Pumping machine (1 HP): breaker identified",
+   "circuitId": "pump",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "earth:pump",
+   "label": "Pumping machine (1 HP): earth conductor checked",
+   "circuitId": "pump",
+   "done": false,
+   "evidenceIds": []
+  },
+  {
+   "id": "memo",
+   "label": "Owner memo drafted",
+   "done": true,
+   "evidenceIds": [],
+   "by": "agent"
+  },
+  {
+   "id": "confirm",
+   "label": "Electrician confirms the memo",
+   "done": true,
+   "evidenceIds": [],
+   "by": "electrician"
+  }
+ ],
+ "media": [
+  {
+   "id": "m1",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 176778,
+   "digest": "5d5e71124479e9cb",
+   "at": "2026-10-28T10:39:40.613Z",
+   "hint": "wall"
+  },
+  {
+   "id": "m2",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 388932,
+   "digest": "b307487828ddc654",
+   "at": "2026-10-28T10:40:00.722Z",
+   "generated": true
+  },
+  {
+   "id": "m3",
+   "kind": "photo",
+   "mime": "image/png",
+   "bytes": 753291,
+   "digest": "7de00bf34113b314",
+   "at": "2026-10-28T10:40:15.771Z",
+   "hint": "board"
+  },
+  {
+   "id": "m4",
+   "kind": "photo",
+   "mime": "image/png",
+   "bytes": 595569,
+   "digest": "59c0702bfc00bdd0",
+   "at": "2026-10-28T10:40:45.942Z",
+   "hint": "cable",
+   "circuitId": "kitchen"
+  },
+  {
+   "id": "m5",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 225366,
+   "digest": "95db690b1b2770e5",
+   "at": "2026-10-28T20:04:59.759Z",
+   "hint": "wall"
+  },
+  {
+   "id": "m6",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 265845,
+   "digest": "4033779de5a7deb9",
+   "at": "2026-10-28T20:05:18.905Z",
+   "hint": "board"
+  },
+  {
+   "id": "m7",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 202365,
+   "digest": "2c76fba58a7a9f38",
+   "at": "2026-10-28T20:05:31.352Z",
+   "hint": "cable"
+  },
+  {
+   "id": "m8",
+   "kind": "photo",
+   "mime": "image/jpeg",
+   "bytes": 202365,
+   "digest": "2c76fba58a7a9f38",
+   "at": "2026-10-28T20:05:45.611Z",
+   "hint": "cable",
+   "circuitId": "kitchen"
+  }
+ ],
+ "evidence": [
+  {
+   "id": "e1",
+   "at": "2026-10-28T10:40:00.721Z",
+   "tool": "map_wall",
+   "by": "sam-3.1",
+   "mediaId": "m1",
+   "summary": "Wall w1: 2 runs (0.1 diagonal 145 cm; 0.2 vertical 101 cm). Diagonal cable run (145 cm)",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "walls"
+   ]
+  },
+  {
+   "id": "e2",
+   "at": "2026-10-28T10:40:30.599Z",
+   "tool": "read_board",
+   "by": "muse-spark-1.3",
+   "mediaId": "m3",
+   "summary": "#1 ISOLATOR/MAIN SWITCH 63 A; #2 MCB B10 A \"CIRCUIT 1 LIGHTS\"; #3 MCB B32 A \"CIRCUIT 2 SOCKETS\"; #4 MCB B20 A \"CIRCUIT 2 SOCKETS\"; #5 MCB C20 A \"CIRCUIT 3 AC UNIT\"; #6 MCB B20 A \"CIRCUIT 4 KITCHEN\"; #7 MCB C20 A \"CIRCUIT 5 BEDROOM\". Main switch yes, RCD no, surge protection no, labels yes",
+   "verified": false,
+   "problems": [
+    "Device 4: printed text shows 20 A and 30 A; check the breaker by eye."
+   ],
+   "proves": []
+  },
+  {
+   "id": "e3",
+   "at": "2026-10-28T10:40:34.585Z",
+   "tool": "correct_board_device",
+   "by": "electrician",
+   "summary": "Board #4 checked by eye: B20 A: “I checked breaker 4 by eye, it is a B20.”",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "board"
+   ]
+  },
+  {
+   "id": "e4",
+   "at": "2026-10-28T10:40:57.298Z",
+   "tool": "read_cable_print",
+   "by": "muse-spark-1.3",
+   "mediaId": "m4",
+   "circuitId": "kitchen",
+   "summary": "“COPPERLINE 2.5mm² 450/750V NIS 1:2019” → 2.5 mm², COPPERLINE, NIS 1:2019",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "cable:kitchen"
+   ]
+  },
+  {
+   "id": "e5",
+   "at": "2026-10-28T10:41:08.673Z",
+   "tool": "assign_breaker",
+   "by": "electrician",
+   "circuitId": "kitchen",
+   "summary": "Breaker #3 (B32 A) feeds Kitchen sockets (ring): “Breaker 3 feeds the kitchen ring, and the green and yellow earth is in the kitchen conduit.”",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "breaker:kitchen"
+   ]
+  },
+  {
+   "id": "e6",
+   "at": "2026-10-28T10:41:08.679Z",
+   "tool": "record_observation",
+   "by": "electrician",
+   "circuitId": "kitchen",
+   "summary": "kitchen earth_present = yes: “Breaker 3 feeds the kitchen ring, and the green and yellow earth is in the kitchen conduit.”",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "earth:kitchen"
+   ]
+  },
+  {
+   "id": "e7",
+   "at": "2026-10-28T20:05:59.386Z",
+   "tool": "read_cable_print",
+   "by": "muse-spark-1.3",
+   "mediaId": "m8",
+   "circuitId": "kitchen",
+   "summary": "“COPPERLINE 2.5mm² 450/750V NIS 1:2019” → 2.5 mm², COPPERLINE, NIS 1:2019",
+   "verified": true,
+   "problems": [],
+   "proves": [
+    "cable:kitchen"
+   ]
+  }
+ ],
+ "runs": [
+  {
+   "id": "r1",
+   "at": "2026-10-28T10:39:40.615Z",
+   "said": "Map this wall before it is plastered.",
+   "mediaId": "m1",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:40:00.725Z",
+     "tool": "map_wall",
+     "why": "Map wall before plaster",
+     "args": {
+      "media_id": "m1"
+     },
+     "ok": true,
+     "evidenceId": "e1",
+     "verified": true,
+     "model": "sam-3.1",
+     "gate": {
+      "status": "off"
+     },
+     "observation": "VERIFIED [e1] Wall w1: 2 runs (0.1 diagonal 145 cm; 0.2 vertical 101 cm). Diagonal cable run (145 cm). Calibrated on 45 blocks. Plastered render saved for the owner's X-ray.",
+     "ms": 16892
+    },
+    {
+     "n": 2,
+     "at": "2026-10-28T10:40:03.301Z",
+     "tool": "tick_checklist",
+     "why": "Wall mapping verified",
+     "args": {
+      "evidence_ids": [
+       "e1"
+      ],
+      "item_id": "walls"
+     },
+     "ok": true,
+     "observation": "Ticked walls with e1. 1 of 24 done.",
+     "ms": 1
+    }
+   ],
+   "modelCalls": 3,
+   "status": "done",
+   "reply": "Wall mapped with 2 runs saved for the plastered X-ray. Next shoot the cable print photos for each circuit.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 24371
+  },
+  {
+   "id": "r2",
+   "at": "2026-10-28T10:40:15.773Z",
+   "said": "Read this distribution board.",
+   "mediaId": "m3",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:40:30.599Z",
+     "tool": "read_board",
+     "why": "Read distribution board photo",
+     "args": {
+      "media_id": "m3"
+     },
+     "ok": true,
+     "evidenceId": "e2",
+     "verified": false,
+     "model": "muse-spark-1.3",
+     "gate": {
+      "status": "off"
+     },
+     "observation": "NOT VERIFIED [e2] #1 ISOLATOR/MAIN SWITCH 63 A; #2 MCB B10 A \"CIRCUIT 1 LIGHTS\"; #3 MCB B32 A \"CIRCUIT 2 SOCKETS\"; #4 MCB B20 A \"CIRCUIT 2 SOCKETS\"; #5 MCB C20 A \"CIRCUIT 3 AC UNIT\"; #6 MCB B20 A \"CIRCUIT 4 KITCHEN\"; #7 MCB C20 A \"CIRCUIT 5 BEDROOM\". Main switch yes, RCD no, surge protection no, labels yes. Problems: Device 4: printed text shows 20 A and 30 A; check the breaker by eye.",
+     "ms": 13117
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Board not verified, device 4 shows both 20 A and 30 A. Check that breaker by eye and tell me its rating.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 16622
+  },
+  {
+   "id": "r3",
+   "at": "2026-10-28T10:40:32.517Z",
+   "said": "I checked breaker 4 by eye, it is a B20.",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:40:34.585Z",
+     "tool": "correct_board_device",
+     "why": "apply eye correction B20",
+     "args": {
+      "curve": "B",
+      "position": 4,
+      "rating_a": 20
+     },
+     "ok": true,
+     "evidenceId": "e3",
+     "verified": true,
+     "observation": "[e3] #4 set to B20 A. The board reading is now VERIFIED.",
+     "ms": 1
+    },
+    {
+     "n": 2,
+     "at": "2026-10-28T10:40:40.361Z",
+     "tool": "tick_checklist",
+     "why": "board now verified",
+     "args": {
+      "evidence_ids": [
+       "e3"
+      ],
+      "item_id": "board"
+     },
+     "ok": true,
+     "observation": "Ticked board with e3. 2 of 24 done.",
+     "ms": 0
+    }
+   ],
+   "modelCalls": 3,
+   "status": "done",
+   "reply": "1 wall run is failing, board is now verified with no RCD. Shoot the cable print photo next.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 13322
+  },
+  {
+   "id": "r4",
+   "at": "2026-10-28T10:40:45.945Z",
+   "said": "Read this cable print.",
+   "mediaId": "m4",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:40:57.298Z",
+     "tool": "read_cable_print",
+     "why": "Read kitchen cable print photo",
+     "args": {
+      "circuit_id": "kitchen",
+      "media_id": "m4"
+     },
+     "ok": true,
+     "evidenceId": "e4",
+     "verified": true,
+     "model": "muse-spark-1.3",
+     "gate": {
+      "status": "off"
+     },
+     "observation": "VERIFIED [e4] “COPPERLINE 2.5mm² 450/750V NIS 1:2019” → 2.5 mm², COPPERLINE, NIS 1:2019. Recorded on kitchen.",
+     "ms": 7492
+    },
+    {
+     "n": 2,
+     "at": "2026-10-28T10:40:59.666Z",
+     "tool": "check_circuit",
+     "why": "Run rules after verified cable",
+     "args": {
+      "circuit_id": "kitchen"
+     },
+     "ok": true,
+     "observation": "kitchen: WARN. OPEN CABLE-MAGNET: Magnet test not recorded; OPEN PROT-OVERLOAD: Breaker not identified; OPEN EARTH-CPC: Earth conductor not confirmed; OPEN RCD-30MA: RCD protection not confirmed (fix: Protect this circuit with a 30 mA RCD or RCBO.). 1 checks pass.",
+     "ms": 0
+    },
+    {
+     "n": 3,
+     "at": "2026-10-28T10:41:01.132Z",
+     "tool": "tick_checklist",
+     "why": "Cable size verified e4",
+     "args": {
+      "evidence_ids": [
+       "e4"
+      ],
+      "item_id": "cable:kitchen"
+     },
+     "ok": true,
+     "observation": "Ticked cable:kitchen with e4. 3 of 24 done.",
+     "ms": 0
+    }
+   ],
+   "modelCalls": 4,
+   "status": "done",
+   "reply": "Kitchen cable verified 2.5 mm². Switch off and lock the breaker first then shoot the magnet test and confirm earth and breaker.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 19388
+  },
+  {
+   "id": "r5",
+   "at": "2026-10-28T10:41:05.469Z",
+   "said": "Breaker 3 feeds the kitchen ring, and the green and yellow earth is in the kitchen conduit.",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:41:08.673Z",
+     "tool": "assign_breaker",
+     "why": "electrician said breaker 3 feeds kitchen",
+     "args": {
+      "circuit_id": "kitchen",
+      "position": 3
+     },
+     "ok": true,
+     "evidenceId": "e5",
+     "verified": true,
+     "observation": "[e5] Breaker #3 (B32 A) feeds Kitchen sockets (ring): “Breaker 3 feeds the kitchen ring, and the green and yellow earth is in the kitchen conduit.”.",
+     "ms": 1
+    },
+    {
+     "n": 2,
+     "at": "2026-10-28T10:41:08.679Z",
+     "tool": "record_observation",
+     "why": "electrician confirmed earth in conduit",
+     "args": {
+      "circuit_id": "kitchen",
+      "field": "earth_present",
+      "value": "yes"
+     },
+     "ok": true,
+     "evidenceId": "e6",
+     "verified": true,
+     "observation": "[e6] Recorded earth_present = yes on kitchen.",
+     "ms": 1
+    },
+    {
+     "n": 3,
+     "at": "2026-10-28T10:41:11.058Z",
+     "tool": "check_circuit",
+     "why": "verify kitchen ring after breaker and earth",
+     "args": {
+      "circuit_id": "kitchen"
+     },
+     "ok": true,
+     "observation": "kitchen: FAIL. OPEN CABLE-MAGNET: Magnet test not recorded; FAIL RCD-30MA: No 30 mA RCD protection (fix: Protect this circuit with a 30 mA RCD or RCBO.). 3 checks pass.",
+     "ms": 1
+    },
+    {
+     "n": 4,
+     "at": "2026-10-28T10:41:12.892Z",
+     "tool": "tick_checklist",
+     "why": "breaker 3 assigned as evidence e5",
+     "args": {
+      "evidence_ids": [
+       "e5"
+      ],
+      "item_id": "breaker:kitchen"
+     },
+     "ok": true,
+     "observation": "Ticked breaker:kitchen with e5. 4 of 24 done.",
+     "ms": 1
+    },
+    {
+     "n": 5,
+     "at": "2026-10-28T10:41:12.895Z",
+     "tool": "tick_checklist",
+     "why": "earth present recorded as e6",
+     "args": {
+      "evidence_ids": [
+       "e6"
+      ],
+      "item_id": "earth:kitchen"
+     },
+     "ok": true,
+     "observation": "Ticked earth:kitchen with e6. 5 of 24 done.",
+     "ms": 0
+    }
+   ],
+   "modelCalls": 4,
+   "status": "done",
+   "reply": "Kitchen fails on no 30 mA RCD and 1 diagonal wall run but breaker 3 and earth are recorded. Switch off and lock the breaker first then shoot the kitchen magnet test.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 10660
+  },
+  {
+   "id": "r6",
+   "at": "2026-10-28T10:41:16.252Z",
+   "said": "Draft the report for the homeowner.",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:41:18.010Z",
+     "tool": "submit_memo",
+     "why": "electrician requested homeowner report",
+     "args": {
+      "summary": "First fix checked: kitchen ring on B32A with earth present, lighting and other circuits still need cable and safety checks. Main issues are no RCD on board and 1 wall run failing. Complete magnet tests, cable prints and earth checks before plaster."
+     },
+     "ok": true,
+     "observation": "Memo saved, UNVERIFIED until the electrician confirms it in the app. Verdict FAIL, 6 fixes, 17 checks still open.",
+     "ms": 3
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Report drafted FAIL with no RCD and 1 failing wall run, it stays unverified until you confirm it in the app. Next capture the missing cable prints and magnet tests.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 3311
+  },
+  {
+   "id": "r7",
+   "at": "2026-10-28T10:42:10.086Z",
+   "said": "Draft the report for the homeowner again with the wall included.",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T10:42:12.964Z",
+     "tool": "submit_memo",
+     "why": "draft report as requested",
+     "args": {
+      "summary": "First fix FAIL: no 30mA RCD on board and 1 diagonal wall run in w1, kitchen ring on B32A needs checks. Confirm in app."
+     },
+     "ok": true,
+     "observation": "Memo saved, UNVERIFIED until the electrician confirms it in the app. Verdict FAIL, 7 fixes, 17 checks still open.",
+     "ms": 3
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Report redrafted FAIL with no RCD and 1 diagonal wall run, it stays unverified until you confirm it in the app. Next capture the missing cable prints and magnet tests.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 4757
+  },
+  {
+   "id": "r8",
+   "at": "2026-10-28T20:04:59.768Z",
+   "said": "Map this wall before it is plastered.",
+   "mediaId": "m5",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T20:05:09.940Z",
+     "tool": "map_wall",
+     "why": "Map wall before plaster as requested",
+     "args": {
+      "media_id": "m5"
+     },
+     "ok": false,
+     "gate": {
+      "status": "block",
+      "reasons": [
+       "A face is visible. Reframe or crop the photo, then try again."
+      ]
+     },
+     "observation": "The privacy gate blocked the photo before it left: A face is visible. Reframe or crop the photo, then try again. Ask for a new shot without people or private details.",
+     "ms": 7428
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Wall not mapped because a face is visible so reshoot without people. Next capture the same wall with no people in frame.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 12181
+  },
+  {
+   "id": "r9",
+   "at": "2026-10-28T20:05:18.908Z",
+   "said": "Read this distribution board.",
+   "mediaId": "m6",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T20:05:29.202Z",
+     "tool": "read_board",
+     "why": "Electrician asked to read board photo",
+     "args": {
+      "media_id": "m6"
+     },
+     "ok": false,
+     "gate": {
+      "status": "block",
+      "reasons": [
+       "Private text is visible (a name, phone number, address or document). Reframe or crop the photo, then try again."
+      ]
+     },
+     "observation": "The privacy gate blocked the photo before it left: Private text is visible (a name, phone number, address or document). Reframe or crop the photo, then try again. Ask for a new shot without people or private details.",
+     "ms": 7746
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Board not read because private text is visible so reshoot cropped with no people or private details. Next recapture this board then the missing cable prints and magnet tests.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 12343
+  },
+  {
+   "id": "r10",
+   "at": "2026-10-28T20:05:31.353Z",
+   "said": "Read this cable print.",
+   "mediaId": "m7",
+   "breakerOff": false,
+   "turns": [],
+   "modelCalls": 1,
+   "status": "done",
+   "reply": "Which circuit is this cable print for? Tell me the circuit so I can read photo m7.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 1390
+  },
+  {
+   "id": "r11",
+   "at": "2026-10-28T20:05:45.613Z",
+   "said": "Read this cable print.",
+   "mediaId": "m8",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-28T20:05:59.386Z",
+     "tool": "read_cable_print",
+     "why": "read kitchen print m8",
+     "args": {
+      "circuit_id": "kitchen",
+      "media_id": "m8"
+     },
+     "ok": true,
+     "evidenceId": "e7",
+     "verified": true,
+     "model": "muse-spark-1.3",
+     "gate": {
+      "status": "pass",
+      "reasons": [],
+      "ms": 6872,
+      "name": "Muse Spark Open"
+     },
+     "observation": "VERIFIED [e7] “COPPERLINE 2.5mm² 450/750V NIS 1:2019” → 2.5 mm², COPPERLINE, NIS 1:2019. Recorded on kitchen.",
+     "ms": 10824
+    },
+    {
+     "n": 2,
+     "at": "2026-10-28T20:06:01.109Z",
+     "tool": "check_circuit",
+     "why": "verify kitchen after print",
+     "args": {
+      "circuit_id": "kitchen"
+     },
+     "ok": true,
+     "observation": "kitchen: FAIL. OPEN CABLE-MAGNET: Magnet test not recorded; FAIL RCD-30MA: No 30 mA RCD protection (fix: Protect this circuit with a 30 mA RCD or RCBO.). 3 checks pass.",
+     "ms": 2
+    },
+    {
+     "n": 3,
+     "at": "2026-10-28T20:06:02.921Z",
+     "tool": "tick_checklist",
+     "why": "prove kitchen cable size",
+     "args": {
+      "evidence_ids": [
+       "e7"
+      ],
+      "item_id": "cable:kitchen"
+     },
+     "ok": true,
+     "observation": "Ticked cable:kitchen with e7. 7 of 24 done.",
+     "ms": 0
+    }
+   ],
+   "modelCalls": 4,
+   "status": "done",
+   "reply": "Kitchen cable verified 2.5 mm² but circuit fails with no 30 mA RCD. Switch off and lock the breaker and tick the box in the app first then do the magnet test.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 19553
+  },
+  {
+   "id": "r12",
+   "at": "2026-10-29T10:32:19.132Z",
+   "said": "What cable for a 1.5 horsepower AC on 15 metres?",
+   "breakerOff": false,
+   "turns": [
+    {
+     "n": 1,
+     "at": "2026-10-29T10:32:22.048Z",
+     "tool": "size_cable",
+     "why": "size new AC circuit request",
+     "args": {
+      "kind": "air-conditioner",
+      "length_m": 15,
+      "load": "1.5 horsepower"
+     },
+     "ok": true,
+     "observation": "2.5 mm² cable on a 10 A type C breaker — voltage drop 0.7% over 15 m. Working: Design current Ib 6.1 A; Correction factors ambient 0.94 × grouping 1; Breaker In 10 A type C; Cable capacity Iz 22.6 A (2.5 mm², method B); Voltage drop 1.66 V = 0.7% (limit 5%).",
+     "ms": 5
+    }
+   ],
+   "modelCalls": 2,
+   "status": "done",
+   "reply": "Use 2.5 square millimetre cable on a 10 A type C breaker for that 1.5 horsepower AC over 15 m with drop 0.7 percent. Next capture the missing cable prints and magnet tests with breakers off and locked.",
+   "replyCheck": {
+    "ok": true,
+    "unknown": []
+   },
+   "ms": 6414
+  }
+ ],
+ "walls": [
+  {
+   "id": "w1",
+   "mediaId": "m1",
+   "renderMediaId": "m2",
+   "evidenceId": "e1",
+   "width": 1280,
+   "height": 854,
+   "map": {
+    "calibrated": true,
+    "blocksUsed": 45,
+    "cmPerPx": {
+     "x": 0.2857142857142857,
+     "y": 0.28313253012048195
+    },
+    "wall": {
+     "widthCm": 365,
+     "heightCm": 223
+    },
+    "runs": [
+     {
+      "id": "0.1",
+      "orientation": "diagonal",
+      "from": {
+       "x": 150,
+       "y": 108
+      },
+      "to": {
+       "x": 274,
+       "y": 33
+      },
+      "lengthCm": 145,
+      "img": {
+       "x1": 0.40898773619002193,
+       "y1": 0.472527649198025,
+       "x2": 0.7483131933483065,
+       "y2": 0.7833581744783137
+      },
+      "confidence": 0.7815700173377991
+     },
+     {
+      "id": "0.2",
+      "orientation": "vertical",
+      "from": {
+       "x": 134,
+       "y": 222
+      },
+      "to": {
+       "x": 140,
+       "y": 121
+      },
+      "lengthCm": 101,
+      "img": {
+       "x1": 0.36655383291520016,
+       "y1": 0.0002635866570677065,
+       "x2": 0.38302725082192124,
+       "y2": 0.4182904272595153
+      },
+      "confidence": 0.7815700173377991
+     }
+    ],
+    "findings": [
+     {
+      "ruleId": "WALL-DIAGONAL",
+      "status": "fail",
+      "title": "Diagonal cable run (145 cm)",
+      "detail": "Concealed cables must run straight up, down or across from a switch or socket, or within 150 mm of the top of the wall or a corner. A diagonal run is where a drill later finds a live cable.",
+      "fix": "Re-route this conduit vertically or horizontally to its accessory before plastering.",
+      "citation": "BS 7671 Reg. 522.6.202 (prescribed zones for cables concealed in walls)"
+     }
+    ]
+   }
+  }
+ ],
+ "boardRead": {
+  "evidenceId": "e2",
+  "by": "muse-spark-1.3",
+  "devices": [
+   {
+    "position": 1,
+    "kind": "ISOLATOR/MAIN SWITCH",
+    "type": "MCB",
+    "ratingA": 63,
+    "sensitivityMA": 0,
+    "label": ""
+   },
+   {
+    "position": 2,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 10,
+    "curve": "B",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 1 LIGHTS"
+   },
+   {
+    "position": 3,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 32,
+    "curve": "B",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 2 SOCKETS"
+   },
+   {
+    "position": 4,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 20,
+    "curve": "B",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 2 SOCKETS"
+   },
+   {
+    "position": 5,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 20,
+    "curve": "C",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 3 AC UNIT"
+   },
+   {
+    "position": 6,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 20,
+    "curve": "B",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 4 KITCHEN"
+   },
+   {
+    "position": 7,
+    "kind": "MCB",
+    "type": "MCB",
+    "ratingA": 20,
+    "curve": "C",
+    "sensitivityMA": 0,
+    "label": "CIRCUIT 5 BEDROOM"
+   }
+  ],
+  "mainSwitch": true,
+  "rcd": false,
+  "spd": false,
+  "labelled": true,
+  "verified": true,
+  "problems": []
+ },
+ "memo": {
+  "at": "2026-10-28T10:42:12.963Z",
+  "status": "confirmed",
+  "summary": "First fix FAIL: no 30mA RCD on board and 1 diagonal wall run in w1, kitchen ring on B32A needs checks. Confirm in app.",
+  "summaryCheck": {
+   "ok": true,
+   "unknown": []
+  },
+  "verdict": "fail",
+  "fixes": [
+   {
+    "fix": "Fit a 30 mA RCD (or RCBOs) on the board",
+    "status": "fail",
+    "count": 6
+   },
+   {
+    "fix": "Re-route this conduit vertically or horizontally to its accessory before plastering.",
+    "status": "fail",
+    "count": 1
+   },
+   {
+    "fix": "Magnet test not recorded",
+    "status": "warn",
+    "count": 5
+   },
+   {
+    "fix": "Film the sheath print up close in good light.",
+    "status": "warn",
+    "count": 4
+   },
+   {
+    "fix": "No SON / NIS marking captured",
+    "status": "warn",
+    "count": 4
+   },
+   {
+    "fix": "Breaker not identified",
+    "status": "warn",
+    "count": 4
+   },
+   {
+    "fix": "Earth conductor not confirmed",
+    "status": "warn",
+    "count": 4
+   }
+  ],
+  "open": [
+   "Lighting, whole house: cable print read",
+   "Lighting, whole house: magnet test",
+   "Lighting, whole house: breaker identified",
+   "Lighting, whole house: earth conductor checked",
+   "Kitchen sockets (ring): magnet test",
+   "Master bedroom AC (1.5 HP): cable print read",
+   "Master bedroom AC (1.5 HP): magnet test",
+   "Master bedroom AC (1.5 HP): breaker identified",
+   "Master bedroom AC (1.5 HP): earth conductor checked",
+   "Bathroom water heater (3 kW): cable print read",
+   "Bathroom water heater (3 kW): magnet test",
+   "Bathroom water heater (3 kW): breaker identified",
+   "Bathroom water heater (3 kW): earth conductor checked",
+   "Pumping machine (1 HP): cable print read",
+   "Pumping machine (1 HP): magnet test",
+   "Pumping machine (1 HP): breaker identified",
+   "Pumping machine (1 HP): earth conductor checked"
+  ],
+  "evidenceIds": [
+   "e1",
+   "e3",
+   "e4",
+   "e5",
+   "e6"
+  ],
+  "confirmedAt": "2026-10-28T10:42:14.899Z"
+ }
+}

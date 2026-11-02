@@ -1,16 +1,60 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DataSwitch } from "@/components/DataSwitch";
 import { EvidenceTag, StatusChip, PageSkeleton } from "@/components/ui";
 import { WallOverlay } from "@/components/WallOverlay";
+import { WhatsAppShare } from "@/components/WhatsAppShare";
+import { ACCESS_HEADER } from "@/lib/access";
 import { mediaUrl } from "@/lib/agent/case";
 import { jobData } from "@/lib/agent/jobdata";
 import type { CaseRecord } from "@/lib/agent/types";
 import { TOOL_LABEL } from "@/lib/agent/view";
-import { getJob } from "@/lib/jobs";
-import { summariseBoard } from "@/lib/summary";
+import { getJob, type Job } from "@/lib/jobs";
+import { PASSCODE, shareToken } from "@/lib/passcode";
+import { summariseBoard, type FixGroup } from "@/lib/summary";
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+
+type Counts = ReturnType<typeof summariseBoard>["counts"];
+
+/** The verdict at the top of the report, and the first line of the WhatsApp message. */
+function headline(counts: Counts, fixes: FixGroup[]) {
+  const n = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+  // Only the fixes that clear a failure; the rest are checks still to do.
+  const failFixes = fixes.filter((g) => g.status === "fail").length;
+  if (counts.fail) {
+    return {
+      title: "Do not plaster yet",
+      detail: `${n(counts.fail, "problem", "problems")} must be fixed while the wiring is still visible. ${failFixes === 1 ? "1 fix clears" : `${failFixes} fixes clear`} ${counts.fail === 1 ? "it" : "them all"}.`,
+    };
+  }
+  if (counts.warn) return { title: "Not finished yet", detail: `${n(counts.warn, "check still needs", "checks still need")} a photo, a clip or the electrician's word before this job can pass.` };
+  return { title: "Ready to plaster", detail: "Every circuit passed. Keep this report: it records where each cable runs inside your walls." };
+}
+
+/** What the owner reads in WhatsApp before opening the link: the verdict, the first fixes and whether it's signed off. */
+function whatsAppText(job: Job, counts: Counts, fixes: FixGroup[], c: CaseRecord | undefined, sample: boolean) {
+  const h = headline(counts, fixes);
+  const memo = c?.memo;
+  const status = memo?.status === "confirmed"
+    ? `✓ Confirmed by ${job.electrician.name} in the app, ${when(memo.confirmedAt!)}.`
+    : memo ? "Draft: the electrician has not confirmed this report yet." : "In progress: the electrician is still capturing this job.";
+  return [
+    `*WireProof report*${sample ? " (sample data)" : ""} · ${job.title}`,
+    `*${h.title}.* ${h.detail}`,
+    ...fixes.slice(0, 3).map((g, i) => `${i + 1}. ${g.fix}`),
+    ...(fixes.length > 3 ? [`…and ${fixes.length - 3} more in the report.`] : []),
+    sample ? "" : status,
+    "Screening report, not a certificate. Open it for the photo behind every reading and the map of your cables:",
+  ].filter(Boolean).join("\n");
+}
+
+/** WhatsApp wants the number as digits with the country code; a masked or partial number leaves the contact to pick. */
+const waNumber = (phone: string) => {
+  const digits = phone.replace(/[\s()+-]/g, "");
+  return /^\d{10,15}$/.test(digits) ? digits : undefined;
+};
 
 /** Has the electrician signed this off? The owner sees the answer before anything else. */
 function SignOff({ c, electrician }: { c: CaseRecord; electrician: string }) {
@@ -102,15 +146,32 @@ async function ReportView(props: PageProps<"/jobs/[id]/report">) {
   const { id } = await props.params;
   const job = getJob(id);
   if (!job) notFound();
-  const { source, board: b, walls, live } = await jobData(job, (await props.searchParams).data);
+  const want = (await props.searchParams).data;
+  const { source, board: b, walls, live } = await jobData(job, want);
   const { board, fixes, counts } = summariseBoard(b, walls);
   const isLive = source === "live";
   const memo = isLive ? live.memo : undefined;
   const confirmed = memo?.status === "confirmed";
+  const verdict = headline(counts, fixes);
+
+  // The link opens without the passcode, but only this report. The owner forwards it; the electrician sends it to the owner.
+  const owner = (await headers()).get(ACCESS_HEADER) === "share";
+  const query = new URLSearchParams();
+  if (PASSCODE) query.set("share", shareToken(job.id, PASSCODE));
+  if (want === "live" || want === "sample") query.set("data", want);
+  const sharePath = `/jobs/${job.id}/report${query.size ? `?${query}` : ""}`;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-4 print:hidden"><DataSwitch href={`/jobs/${job.id}/report`} source={source} verified={live.evidence.filter((e) => e.verified).length} /></div>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3 print:hidden">
+        <DataSwitch href={`/jobs/${job.id}/report`} source={source} verified={live.evidence.filter((e) => e.verified).length} />
+        <WhatsAppShare
+          text={whatsAppText(job, counts, fixes, isLive ? live : undefined, !isLive)}
+          path={sharePath}
+          phone={owner ? undefined : waNumber(job.owner.phone)}
+          label={owner ? "Forward on WhatsApp" : "Send to the owner on WhatsApp"}
+        />
+      </div>
       <div className="rounded-xl border border-line bg-card p-6">
         <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
           <div>
@@ -128,16 +189,8 @@ async function ReportView(props: PageProps<"/jobs/[id]/report">) {
         {isLive && <SignOff c={live} electrician={job.electrician.name} />}
 
         <div className={`mt-5 rounded-lg p-4 ${counts.fail ? "bg-fail-soft" : counts.warn ? "bg-warn-soft" : "bg-pass-soft"}`}>
-          <div className={`text-lg font-semibold ${counts.fail ? "text-fail" : counts.warn ? "text-warn" : "text-pass"}`}>
-            {counts.fail ? "Do not plaster yet" : counts.warn ? "Not finished yet" : "Ready to plaster"}
-          </div>
-          <p className="mt-1 text-sm text-ink-2">
-            {counts.fail
-              ? `${counts.fail} problems must be fixed while the wiring is still visible. ${fixes.length} fixes clear all of them.`
-              : counts.warn
-                ? `${counts.warn} checks still need a photo, a clip or the electrician's word before this job can pass.`
-                : "Every circuit passed. Keep this report: it records where each cable runs inside your walls."}
-          </p>
+          <div className={`text-lg font-semibold ${counts.fail ? "text-fail" : counts.warn ? "text-warn" : "text-pass"}`}>{verdict.title}</div>
+          <p className="mt-1 text-sm text-ink-2">{verdict.detail}</p>
         </div>
 
         {memo && (

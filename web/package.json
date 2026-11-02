@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "seed:save": "node scripts/save-seed.mjs"
   },
   "dependencies": {
     "@meta-sam/parser": "^0.1.0",
