@@ -2,6 +2,17 @@
 
 /** Spoken replies use the phone's own voice (the rules keep decisions on Meta's models). Pick the most natural English
  * voice installed rather than the default, which on most phones is the oldest one. */
+/** iPhone only lets a page speak from inside a tap. A silent utterance in the tap unlocks speech for the replies that
+ * arrive seconds later, after the model has answered. */
+let primed = false;
+function primeSpeech() {
+  if (primed || !("speechSynthesis" in window)) return;
+  primed = true;
+  const u = new SpeechSynthesisUtterance(" ");
+  u.volume = 0;
+  speechSynthesis.speak(u);
+}
+
 function sayAloud(text: string) {
   const prefer = [/en[-_]NG/i, /Google UK English/i, /Google US English/i, /Daniel/i, /Samantha/i, /Karen/i, /Moira/i, /Natural|Neural|Enhanced|Premium/i];
   const voices = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
@@ -151,6 +162,7 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
   }
 
   async function talk() {
+    primeSpeech();
     if (!recording) {
       try {
         ptt.current = new PushToTalk();
@@ -289,7 +301,7 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
       </div>
 
       <div className="flex flex-col">
-        <form onSubmit={(e) => { e.preventDefault(); ask(question); }} className="rounded-xl border border-line bg-card p-3">
+        <form onSubmit={(e) => { e.preventDefault(); primeSpeech(); ask(question); }} className="rounded-xl border border-line bg-card p-3">
           <button
             type="button"
             onClick={talk}
