@@ -1,5 +1,19 @@
 "use client";
 
+/** Spoken replies use the phone's own voice (the rules keep decisions on Meta's models). Pick the most natural English
+ * voice installed rather than the default, which on most phones is the oldest one. */
+function sayAloud(text: string) {
+  const prefer = [/en[-_]NG/i, /Google UK English/i, /Google US English/i, /Daniel/i, /Samantha/i, /Karen/i, /Moira/i, /Natural|Neural|Enhanced|Premium/i];
+  const voices = speechSynthesis.getVoices().filter((v) => /^en/i.test(v.lang));
+  const voice = prefer.map((re) => voices.find((v) => re.test(v.name) || re.test(v.lang))).find(Boolean) ?? voices[0];
+  const u = new SpeechSynthesisUtterance(text);
+  if (voice) u.voice = voice;
+  u.rate = 1.02;
+  u.pitch = 1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { GateBadge, type GateInfo } from "@/components/ui";
@@ -114,7 +128,7 @@ export default function Copilot({ jobId, jobTitle, circuits }: { jobId: string; 
           setBusy(`${TOOL_LABEL[e.turn.tool] ?? e.turn.tool} done · Muse Spark is deciding the next step…`);
         } else if (e.type === "done") {
           update((r) => ({ ...r, reply: e.run.reply, check: e.run.replyCheck, ms: e.run.ms, modelCalls: e.run.modelCalls, running: false }));
-          if (speak && e.run.reply && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(e.run.reply));
+          if (speak && e.run.reply && "speechSynthesis" in window) sayAloud(e.run.reply);
         } else if (e.type === "error") {
           update((r) => ({ ...r, error: e.message, running: false }));
         }
