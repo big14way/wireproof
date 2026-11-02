@@ -28,7 +28,6 @@
     6.0
    ],
    "head": "Before the plaster goes on",
-   "credit": "Footage: Pexels",
    "vo": "In Nigeria, we build with block and plaster. The wires go into the wall, then the plaster goes on, and from that day, nobody can see them again. Not the owner, not the next electrician. Nobody."
   },
   {
@@ -39,7 +38,6 @@
     0.0,
     8.0
    ],
-   "credit": "Aerial: Pexels",
    "vo": "Lagos Fire Service counted over one thousand six hundred fires in 2025, and electrical faults are the leading cause."
   },
   {
@@ -51,7 +49,6 @@
     5.8
    ],
    "head": "Fake copper, thin cable, plastered over",
-   "credit": "Photo: James Barrante (Sumpfchiller), CC BY-SA 3.0, Wikimedia Commons",
    "vo": "Some of it is fake cable. Cable sold as copper that is really coated iron; a fridge magnet will tell you."
   },
   {
@@ -62,7 +59,6 @@
     0.0,
     5.8
    ],
-   "credit": "Photo: Pexels",
    "vo": "Some of it is cable that's too thin for the breaker in front of it. And all of it gets plastered over."
   },
   {
@@ -151,7 +147,6 @@
    ],
    "fit": "blur",
    "head": "Conduit in the wall, before plaster",
-   "credit": "Footage: E'LIGHT ELECTRICALS LTD (TikTok)",
    "vo": "Before the plaster goes on, it photographs the wall."
   },
   {
@@ -259,7 +254,7 @@
      "github.com/big14way/wireproof"
     ]
    ],
-   "footer": "Footage credited on screen: E'LIGHT ELECTRICALS LTD (TikTok), Pexels, Wikimedia Commons. Screening, not certification.",
+   "footer": "Screening, not certification. A licensed electrician signs off every job.",
    "vo": "Every house gets plastered once. WireProof makes sure somebody looked first."
   }
  ],
