@@ -100,6 +100,9 @@ Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `pr
 | Breaker board: RCD present? | 3 | 3/3 (none on any of them, which is the finding) |
 | Voice commands | 25 lines, Nigerian English, 5 over background noise | pending: recorded with `probe/record_voice.sh` |
 
+### Tried by an electrician
+The phone footage in the video (starting a job, then talking to the copilot) was recorded by a working electrician on their own phone, not by us. They set up a three-bedroom bungalow on the live site, asked the copilot about the kitchen circuit, and were told the answer out loud. That is the only outside use so far; we are collecting more.
+
 What "verified" means: code, not the model, checks that the size is one cable is made in, that it appears in the text copied off the sheath, and that the confidence is above 0.6. A reading that fails is kept as evidence but never changes a circuit; the electrician is asked for another photo.
 
 ## Deploy
