@@ -40,11 +40,16 @@ function viaShare(request: NextRequest, passcode: string) {
  * each photo spends Meta credits. Requests made on this machine (no cf-ray header, addressed to localhost) pass
  * through, except on a hosted server. A report's share link opens just that report, so the owner can read it.
  */
+const PUBLIC = new Set(["/", "/panel", "/api/panel", "/api/render"]);
+
 export function proxy(request: NextRequest) {
   if (!PASSCODE) return pass(request, "full");
   const { pathname } = request.nextUrl;
   if (!HOSTED && !request.headers.has("cf-ray") && LOCAL.has(hostOf(request))) return pass(request, "full");
   if (pathname === "/unlock" || pathname === "/api/unlock" || pathname === "/api/health" || pathname === "/api/relay") return pass(request, "full");
+  // Open to anyone: the landing page, and the panel reader so a visitor can try it on their own board with no account.
+  // Model calls on it count against META_DAILY_CALL_CAP like every other call.
+  if (PUBLIC.has(pathname)) return pass(request, "share");
   if (matches(request.cookies.get(COOKIE)?.value, PASSCODE)) return pass(request, "full");
   const shared = viaShare(request, PASSCODE);
   if (shared) return shared;

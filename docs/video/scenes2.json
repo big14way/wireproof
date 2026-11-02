@@ -1,0 +1,26 @@
+{
+  "base": "http://localhost:3000", "viewport": [1440, 810], "window": [1440, 900], "video": [1920, 1080],
+  "out": "clips", "accent": "#b4652a",
+  "scenes": [
+    {"name": "copilot_cable", "steps": [
+      ["goto", "/jobs/demo/copilot", "h1:has-text(\"Copilot\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Lighting\")", 700], ["click"], ["wait", 500],
+      ["moveTo", "button:has-text(\"Read cable print\")", 800], ["click"], ["wait", 400],
+      ["upload", "input[type=file]", "../wireproof/probe/cable/black-cord-3.jpg"], ["wait", 1500],
+      ["waitUntil", "/VERIFIED \\[e\\d+\\]/.test(document.body.innerText) || document.body.innerText.includes('NOT VERIFIED') || document.body.innerText.includes('gate')", 150000],
+      ["wait", 3000], ["scrollBy", 250, 900], ["wait", 3500]]},
+    {"name": "copilot_board", "steps": [
+      ["goto", "/jobs/demo/copilot", "h1:has-text(\"Copilot\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Read board\")", 800], ["click"], ["wait", 400],
+      ["upload", "input[type=file]", "../wireproof/probe/board/house-board-full.jpg"], ["wait", 1500],
+      ["waitUntil", "/Read board/.test(document.body.innerText) && /VERIFIED/.test(document.body.innerText)", 150000], ["wait", 3500],
+      ["moveTo", "input[placeholder]", 800], ["click"], ["type", "I checked breaker 2 by eye, it is 20 A.", 28], ["wait", 400],
+      ["moveTo", "button:has-text(\"Ask\")", 600], ["click"],
+      ["waitUntil", "/by eye/.test(document.body.innerText) && /20 A/.test(document.body.innerText) && !/Working|Thinking/.test(document.body.innerText)", 120000], ["wait", 3000], ["scrollBy", 250, 900], ["wait", 3000]]},
+    {"name": "panel", "steps": [
+      ["goto", "/panel", "h1"], ["wait", 1200],
+      ["upload", "input[type=file]", "../wireproof/probe/board/solar-box.jpg"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Read\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "/\\d+ A/.test(document.body.innerText) && /(MCB|solator|urge)/.test(document.body.innerText) && !/Reading…|Reading\\.\\.\\./.test(document.body.innerText)", 150000], ["wait", 3000], ["scrollBy", 400, 1400], ["wait", 3000]]}
+  ]
+}

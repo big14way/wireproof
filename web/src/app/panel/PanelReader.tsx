@@ -79,6 +79,10 @@ export default function PanelReader({ sample }: { sample: Result }) {
           Photograph any distribution board or breaker panel with the cover off. Muse Spark reads every device and its
           rating; the rules engine checks isolation, RCD protection, surge protection and labelling.
         </p>
+        <p className="mt-2 text-sm text-ink-2">
+          <span className="font-semibold">Free to try, no account.</span> Keep people out of the frame: a privacy check runs
+          before the photo goes anywhere, and the photo is not kept.
+        </p>
         <label className="mt-4 grid aspect-[4/3] cursor-pointer place-items-center overflow-hidden rounded-xl border-2 border-dashed border-line bg-card text-center text-sm text-muted hover:border-copper">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element

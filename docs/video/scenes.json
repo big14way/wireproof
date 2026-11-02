@@ -1,0 +1,45 @@
+{
+  "base": "http://localhost:3000", "viewport": [1440, 810], "window": [1440, 900], "video": [1920, 1080],
+  "out": "clips", "accent": "#b4652a",
+  "scenes": [
+    {"name": "landing", "steps": [
+      ["goto", "/", "h1"], ["wait", 1800], ["moveTo", "h1", 900, 40, 30], ["zoom", "h1", 1.3, 900, 3500], ["unzoom", 800],
+      ["scrollTo", "text=How it decides", 140, 1500], ["wait", 3000]]},
+    {"name": "copilot_cable", "steps": [
+      ["goto", "/jobs/demo/copilot", "h1:has-text(\"Copilot\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Lighting\")", 700], ["click"], ["wait", 500],
+      ["moveTo", "button:has-text(\"Read cable print\")", 800], ["click"], ["wait", 400],
+      ["upload", "input[type=file]", "../wireproof/probe/cable/black-cord-3.jpg"], ["wait", 1500],
+      ["waitUntil", "document.body.innerText.includes('VERIFIED') || document.body.innerText.includes('NOT VERIFIED') || document.body.innerText.includes('Recorded')", 120000],
+      ["wait", 2500], ["scrollBy", 200, 900], ["wait", 3000]]},
+    {"name": "copilot_board", "steps": [
+      ["goto", "/jobs/demo/copilot", "h1:has-text(\"Copilot\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Read board\")", 800], ["click"], ["wait", 400],
+      ["upload", "input[type=file]", "../wireproof/probe/board/house-board-full.jpg"], ["wait", 1500],
+      ["waitUntil", "document.body.innerText.includes('RCD') && (document.body.innerText.includes('VERIFIED') || document.body.innerText.includes('Recorded'))", 120000],
+      ["wait", 2500], ["scrollBy", 200, 900], ["wait", 3000]]},
+    {"name": "console", "steps": [
+      ["goto", "/jobs/demo/console", "h1:has-text(\"Agent console\")"], ["wait", 2500],
+      ["scrollBy", 500, 1400], ["wait", 2500], ["scrollTo", "text=Checklist", 120, 1400], ["wait", 2500],
+      ["scrollTo", "text=Owner memo", 120, 1400], ["wait", 3000]]},
+    {"name": "report", "steps": [
+      ["goto", "/jobs/demo/report", "h1"], ["wait", 2000], ["zoom", "h1", 1.25, 900, 2500], ["unzoom", 700],
+      ["scrollTo", "text=What must be fixed before plastering", 110, 1500], ["wait", 3000],
+      ["scrollBy", 700, 1800], ["wait", 2500], ["scrollTo", "text=Still to check before sign-off", 110, 1500], ["wait", 2000],
+      ["scrollTo", "text=Where your cables run", 110, 1500], ["wait", 3000],
+      ["scrollTo", "text=The photos behind this report", 110, 1500], ["wait", 3000]]},
+    {"name": "walls", "steps": [
+      ["goto", "/jobs/demo/walls", "h1:has-text(\"Wall map\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"sample\")", 800], ["click"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Map cables\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "document.body.innerText.includes('diagonal') || document.body.innerText.includes('Diagonal')", 180000], ["wait", 2500],
+      ["scrollTo", "text=Cable runs", 120, 1400], ["wait", 2500],
+      ["moveTo", "button:has-text(\"Show after plaster\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "!!document.querySelector('img[alt*=\"plaster\"], img[alt*=\"After\"], img[alt*=\"after\"]')", 180000], ["wait", 4000]]},
+    {"name": "panel", "steps": [
+      ["goto", "/panel", "input[type=file]"], ["wait", 1200],
+      ["upload", "input[type=file]", "../wireproof/probe/board/solar-box.jpg"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Read\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "document.body.innerText.includes(' A') && /MCB|isolator|Isolator|surge|Surge/.test(document.body.innerText) && !document.body.innerText.includes('Reading')", 120000], ["wait", 3000], ["scrollBy", 400, 1400], ["wait", 3000]]}
+  ]
+}

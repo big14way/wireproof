@@ -16,6 +16,10 @@ describe("deviceProblems", () => {
   it("rejects a rating that isn't in the printed text", () => {
     expect(deviceProblems(1, "MCB", 20, "30A 1P 10kA")).toEqual(["Device 1: rating 20 A is not in its printed text."]);
   });
+  // Seen on a real board: the small print on a 20 A breaker also carried "1 A", which is not a rating breakers come in.
+  it("ignores small-print amp figures that are not breaker ratings", () => {
+    expect(deviceProblems(2, "MCB", 20, "C20 20A 1 A 230/400V 6000")).toEqual([]);
+  });
   it("sends an ambiguous print back to the electrician", () => {
     expect(deviceProblems(5, "MCB", 20, "B20 32A")).toEqual(["Device 5: printed text shows 20 A and 32 A; check the breaker by eye."]);
   });
