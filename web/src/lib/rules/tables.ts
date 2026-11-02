@@ -4,6 +4,9 @@
 
 export type CableSize = 1 | 1.5 | 2.5 | 4 | 6 | 10 | 16 | 25;
 export const CABLE_SIZES: CableSize[] = [1, 1.5, 2.5, 4, 6, 10, 16, 25];
+/** Sizes printed on cable sheaths: the fixed-wiring sizes plus flexible-cord sizes (appliance leads, extension boxes). */
+export type PrintedSize = 0.5 | 0.75 | 1.25 | CableSize;
+export const PRINTED_SIZES: PrintedSize[] = [0.5, 0.75, 1, 1.25, 1.5, 2.5, 4, 6, 10, 16, 25];
 
 /** How the cable is installed, as BS 7671 Appendix 4 reference methods. */
 export type InstallMethod = "A" | "B" | "C";
@@ -39,8 +42,15 @@ export const GROUPING_4C1: Record<number, number> = {
   1: 1.0, 2: 0.8, 3: 0.7, 4: 0.65, 5: 0.6, 6: 0.57, 7: 0.54, 8: 0.52, 9: 0.5,
 };
 
-/** Preferred ratings of BS EN 60898 circuit breakers (A). */
+/** Preferred ratings of BS EN 60898 circuit breakers (A). What the rules recommend. */
 export const MCB_RATINGS = [6, 10, 16, 20, 25, 32, 40, 50, 63] as const;
+
+/**
+ * Every rating a breaker on sale in Nigeria may carry (A): the BS EN 60898 ones, the older BS 3871 sizes still sold
+ * everywhere (15, 30, 45, 60 A), and the larger frames used as main breakers. A reading or an electrician's correction
+ * is checked against this list, so a real 30 A breaker is accepted; advice still comes from MCB_RATINGS.
+ */
+export const MARKET_RATINGS = [6, 10, 13, 15, 16, 20, 25, 30, 32, 40, 45, 50, 60, 63, 80, 100, 125] as const;
 
 /** Nominal supply voltage (V). Nigeria: 230 V single phase, 50 Hz. */
 export const NOMINAL_VOLTAGE = 230;
@@ -53,6 +63,7 @@ export const DEFAULT_AMBIENT_C = 35;
 
 export const CITATIONS = {
   capacity: "BS 7671 Table 4D1A",
+  minSize: "BS 7671 Table 52.3 (1 mm² minimum for fixed wiring)",
   voltDrop: "BS 7671 Table 4D1B; Appendix 4 §6.4",
   ambient: "BS 7671 Table 4B1",
   grouping: "BS 7671 Table 4C1",

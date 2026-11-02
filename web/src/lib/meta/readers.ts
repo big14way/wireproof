@@ -1,5 +1,7 @@
 import "server-only";
-import { CABLE_SIZES, MCB_RATINGS, type CableReading, type CableSize, type Evidence, type ProtectiveDevice } from "@/lib/rules";
+import type { CableReading, Evidence, ProtectiveDevice } from "@/lib/rules";
+import { deviceProblems } from "./boardcheck";
+import { cableProblems } from "./cablecheck";
 import { sparkJSON, type Media } from "./client";
 
 const S = { type: "string" } as const;
@@ -25,6 +27,7 @@ export interface Checked<T> {
 const CABLE_PROMPT = `You are reading the printed marking on the sheath of an electrical cable in a photo taken on a building site.
 Copy the printed text exactly as it appears in print_text. Then report the conductor size in mm² (for example "2.5"),
 the number of cores, the brand, any SON registration number, and any standard marked (such as NIS, BS 6004 or IEC 60227).
+size_mm2 is the conductor size alone: for "3x1.5mm²" it is "1.5". Appliance and extension cords count as cables too.
 Use an empty string for anything you cannot read clearly. Do not guess from colour or thickness: only from printed text.
 confidence is your confidence from 0 to 1 that print_text is read correctly.`;
 
@@ -38,21 +41,11 @@ export async function readCable(media: Media): Promise<Checked<CableReading>> {
   const r = await sparkJSON<CableRaw>({ prompt: CABLE_PROMPT, media, schema: CABLE_SCHEMA, name: "cable_print" });
   const d = r.data;
   const evidence: Evidence = { id: evidenceId("ev-cable"), kind: media.kind === "image" ? "photo" : "clip", by: r.model, confidence: d.confidence, note: d.print_text ? `“${d.print_text}”` : "No legible print" };
-  const problems: string[] = [];
-
-  const size = Number(d.size_mm2.replace(/[^\d.]/g, ""));
-  const known = CABLE_SIZES.includes(size as CableSize);
-  if (!d.size_mm2) problems.push("No size printed or readable.");
-  else if (!known) problems.push(`“${d.size_mm2}” is not a standard cable size.`);
-  // The size must literally appear in the copied print, or the model is guessing.
-  if (known && d.print_text && !new RegExp(`\\b${String(size).replace(".", "[.,]")}\\s*(mm|sq|²)`, "i").test(d.print_text)) {
-    problems.push("The size is not in the copied print text.");
-  }
-  if (d.confidence < 0.6) problems.push("Low confidence: film the print closer and in better light.");
+  const { size, problems } = cableProblems(d.size_mm2, d.print_text, d.confidence);
 
   return {
     value: {
-      printedSize: { value: known ? (size as CableSize) : null, evidence },
+      printedSize: { value: size, evidence },
       brand: d.brand ? { value: d.brand, evidence } : undefined,
       sonMark: d.son_number || d.standard ? { value: [d.son_number, d.standard].filter(Boolean).join(" · "), evidence } : undefined,
     },
@@ -117,14 +110,7 @@ export async function readBoard(media: Media): Promise<Checked<BoardReading>> {
     const kind = x.type.toUpperCase();
     const type: ProtectiveDevice["type"] = kind.includes("RCBO") ? "RCBO" : kind.includes("FUSE") ? "fuse" : "MCB";
     const curve = (["B", "C", "D"].includes(x.curve.toUpperCase()) ? x.curve.toUpperCase() : undefined) as ProtectiveDevice["curve"];
-    if ((kind.includes("MCB") || kind.includes("RCBO")) && x.rating_a > 0 && !(MCB_RATINGS as readonly number[]).includes(x.rating_a)) {
-      problems.push(`Device ${i + 1}: ${x.rating_a} A is not a standard breaker rating.`);
-    }
-    if ((kind.includes("MCB") || kind.includes("RCBO")) && x.rating_a === 0) problems.push(`Device ${i + 1}: rating unreadable.`);
-    // Cross-check the rating against the text copied off the device: a breaker marked "B20" and "30A" is ambiguous.
-    const amps = new Set([...x.printed_text.toUpperCase().matchAll(/\b(?:[BCD](\d{1,3})|(\d{1,3})\s?A)\b/g)].map((m) => Number(m[1] ?? m[2])));
-    if (amps.size > 1) problems.push(`Device ${i + 1}: printed text shows ${[...amps].map((a) => `${a} A`).join(" and ")}; check the breaker by eye.`);
-    else if (x.rating_a > 0 && amps.size === 1 && !amps.has(x.rating_a)) problems.push(`Device ${i + 1}: rating ${x.rating_a} A is not in its printed text.`);
+    problems.push(...deviceProblems(i + 1, kind, x.rating_a, x.printed_text));
     return { position: i + 1, kind, type, ratingA: x.rating_a, curve, sensitivityMA: x.sensitivity_ma, label: x.label };
   });
   const rcdSeen = devices.some((x) => x.kind.includes("RCD") || x.kind.includes("RCBO") || x.sensitivityMA > 0);

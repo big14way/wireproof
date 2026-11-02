@@ -5,7 +5,7 @@ import { guarded } from "@/lib/meta/guard";
 import { editImage, MUSE_IMAGE, RENDERS } from "@/lib/meta/image";
 import { readBoard, readCable, readMagnet } from "@/lib/meta/readers";
 import { traceWall } from "@/lib/meta/sam";
-import { CABLE_SIZES, checkCircuit, designCircuit, MCB_RATINGS, parseLoad, type CableSize, type Circuit, type CircuitKind, type Evidence } from "@/lib/rules";
+import { CABLE_SIZES, checkCircuit, designCircuit, MARKET_RATINGS, parseLoad, type CableSize, type Circuit, type CircuitKind, type Evidence } from "@/lib/rules";
 import { summariseBoard } from "@/lib/summary";
 import { addEvidence, addMedia, mediaDataUrl, mediaUrl, wallFindings } from "./case";
 import type { CaseRecord, MediaRef, Run, Turn } from "./types";
@@ -164,7 +164,7 @@ function correctBoardDevice({ c, run }: ToolContext, a: Record<string, unknown>)
   const d = b.devices.find((x) => x.position === position);
   if (!d) throw new ToolError(`No device at position ${position}. Positions: ${b.devices.map((x) => x.position).join(", ")}.`);
   if (!saidNumber(run.said, position) || !saidNumber(run.said, rating)) throw new ToolError(`The electrician didn't say device ${position} is ${rating} A. Ask them to check it by eye.`);
-  if (!(MCB_RATINGS as readonly number[]).includes(rating)) throw new ToolError(`${rating} A is not a standard breaker rating. Ask them to read it again.`);
+  if (!(MARKET_RATINGS as readonly number[]).includes(rating)) throw new ToolError(`${rating} A is not a rating breakers are sold in. Ask them to read it again.`);
   if (curve && !new RegExp(`\\b${curve}\\s?${rating}\\b|\\btype ${curve}\\b|\\b${curve} curve\\b`, "i").test(run.said)) throw new ToolError(`The electrician didn't say curve ${curve}. Leave curve empty or ask.`);
   d.ratingA = rating;
   if (curve) d.curve = curve as "B" | "C" | "D";

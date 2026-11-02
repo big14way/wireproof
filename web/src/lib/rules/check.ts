@@ -1,6 +1,7 @@
 import { designCurrent, voltDrop } from "./design";
 import {
-  ambientFactor, CAPACITY_4D1A, CITATIONS, DEFAULT_AMBIENT_C, groupingFactor, MCB_RATINGS, VOLT_DROP_LIMIT,
+  ambientFactor, CABLE_SIZES, CAPACITY_4D1A, CITATIONS, DEFAULT_AMBIENT_C, groupingFactor, MCB_RATINGS, VOLT_DROP_LIMIT,
+  type CableSize,
 } from "./tables";
 import type { Board, Circuit, CircuitResult, Evidence, Finding, Status } from "./types";
 
@@ -24,8 +25,11 @@ export function checkCircuit(c: Circuit): CircuitResult {
   const method = c.method ?? "B";
   const ca = ambientFactor(c.ambientC ?? DEFAULT_AMBIENT_C);
   const cg = groupingFactor(c.groupedWith ?? 1);
-  const size = c.cable.printedSize?.value ?? c.designSize;
-  const it = CAPACITY_4D1A[method][size];
+  const printedValue = c.cable.printedSize?.value;
+  // A cord-only size (0.5, 0.75 or 1.25 mm²) has no fixed-wiring rating: rule 2 fails it, and the capacity and drop sums are skipped.
+  const cord = printedValue != null && !(CABLE_SIZES as number[]).includes(printedValue);
+  const size: CableSize = printedValue != null && !cord ? (printedValue as CableSize) : c.designSize;
+  const it = cord ? 0 : CAPACITY_4D1A[method][size];
   const iz = it * ca * cg;
   const ib = c.loadW != null ? designCurrent({ kind: c.kind, loadW: c.loadW, powerFactor: c.powerFactor, lengthM: c.lengthM }) : undefined;
   const ring = c.kind === "sockets-ring";
@@ -49,6 +53,12 @@ export function checkCircuit(c: Circuit): CircuitResult {
   const printed = c.cable.printedSize;
   if (!printed || printed.value == null) {
     add({ ruleId: "CABLE-PRINT", status: "warn", title: "Cable size not readable", detail: "No legible size print was captured on this run.", fix: "Film the sheath print up close in good light.", citation: CITATIONS.capacity, evidence: ev(printed?.evidence) });
+  } else if (cord) {
+    add({
+      ruleId: "CABLE-PRINT", status: "fail", title: `${printed.value} mm² is cord size, not house wiring`,
+      detail: `The sheath reads ${printed.value} mm², ${printed.value < CABLE_SIZES[0] ? "below the 1 mm² minimum for fixed wiring" : "a size made only for appliance cords"}. The circuit was designed for ${c.designSize} mm².`,
+      fix: `Replace with ${c.designSize} mm² cable.`, citation: CITATIONS.minSize, evidence: ev(printed.evidence),
+    });
   } else if (printed.value < c.designSize) {
     add({
       ruleId: "CABLE-PRINT", status: "fail", title: `Undersized cable: ${printed.value} mm² instead of ${c.designSize} mm²`,
@@ -71,7 +81,13 @@ export function checkCircuit(c: Circuit): CircuitResult {
   const device = c.device?.value;
   if (device) {
     const needed = ring ? 0.67 * device.ratingA : device.ratingA;
-    if (iz < needed) {
+    if (cord) {
+      add({
+        ruleId: "PROT-OVERLOAD", status: "fail", title: `${device.ratingA} A breaker on ${printedValue} mm² cord`,
+        detail: `BS 7671 gives no fixed-wiring rating for ${printedValue} mm², so this breaker can't be shown to protect it.`,
+        fix: `Replace with ${c.designSize} mm² cable.`, citation: CITATIONS.minSize, evidence: ev(c.device?.evidence),
+      });
+    } else if (iz < needed) {
       add({
         ruleId: "PROT-OVERLOAD", status: "fail",
         title: `${device.ratingA} A breaker on ${size} mm² cable`,
@@ -94,7 +110,7 @@ export function checkCircuit(c: Circuit): CircuitResult {
 
   // 4. Voltage drop at the far end.
   let vd: { volts: number; pct: number } | undefined;
-  if (ib != null) {
+  if (ib != null && !cord) {
     vd = voltDrop(size, ib, c.lengthM, ring);
     const limit = c.kind === "lighting" ? VOLT_DROP_LIMIT.lighting : VOLT_DROP_LIMIT.other;
     add({

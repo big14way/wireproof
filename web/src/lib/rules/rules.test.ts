@@ -66,6 +66,16 @@ describe("checks", () => {
     expect(r.findings.find((f) => f.ruleId === "CABLE-PRINT")?.status).toBe("fail");
   });
 
+  it("fails a cord-size print without inventing a capacity for it", () => {
+    const r = checkCircuit(base({ kind: "lighting", designSize: 1.5, loadW: 400, cable: { ...base({}).cable, printedSize: { value: 0.75 } } }));
+    const rule = (id: string) => r.findings.find((f) => f.ruleId === id);
+    expect(rule("CABLE-PRINT")?.title).toBe("0.75 mm² is cord size, not house wiring");
+    expect(rule("CABLE-PRINT")?.detail).toContain("below the 1 mm² minimum");
+    expect(rule("PROT-OVERLOAD")?.status).toBe("fail");
+    expect(rule("VOLT-DROP")).toBeUndefined();
+    expect(r.numbers.correctedCapacityA).toBe(0);
+  });
+
   it("fails a SON-alert brand", () => {
     const r = checkCircuit(base({ cable: { ...base({}).cable, brand: { value: "Sunrise Cables" } } }));
     expect(r.findings.find((f) => f.ruleId === "CABLE-BRAND")?.status).toBe("fail");

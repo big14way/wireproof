@@ -258,7 +258,7 @@ def obj(props, required=None):
 S, B, N = {"type": "string"}, {"type": "boolean"}, {"type": "number"}
 READ_TASKS = {
     "cable": ("Read the print on this electrical cable. Report the conductor size in mm² exactly as printed "
-              "(for example 2.5), the number of cores, the brand, any SON registration number, and the standard "
+              "(for example 2.5; for \"3x1.5mm²\" give 1.5), the number of cores, the brand, any SON registration number, and the standard "
               "printed (for example NIS or BS). Use an empty string for anything you cannot read; do not guess.",
               obj({"size_mm2": S, "cores": S, "brand": S, "son_number": S, "standard": S, "legible": B, "notes": S}),
               ["size_mm2", "brand"]),
@@ -299,7 +299,10 @@ def cmd_read(a):
     with open(out / f"{a.task}.csv", "w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=cols); w.writeheader(); w.writerows(rows)
     if a.truth:
-        norm = lambda s: re.sub(r"[\s²]|mm", "", str(s).lower())
+        def norm(s):
+            # "0,75" and "0.75" are the same size, as are "1.0" and "1"; a core count in front ("3x1.5", "3G0.75") is not part of it.
+            s = re.sub(r"^\d+[x×*g](?=\d)", "", re.sub(r"mm[2²]?|[\s²]", "", str(s).lower()).replace(",", "."))
+            return s.rstrip("0").rstrip(".") if re.fullmatch(r"\d+\.\d+", s) else s
         truth = {r["file"]: r for r in csv.DictReader(open(a.truth))}
         right = sum(1 for r in rows if r["file"] in truth and all(norm(r.get(k, "")) == norm(truth[r["file"]].get(k, ""))
                                                                   for k in scored if k in truth[r["file"]]))

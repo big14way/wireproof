@@ -1,4 +1,4 @@
-import type { CableSize, InstallMethod } from "./tables";
+import type { CableSize, InstallMethod, PrintedSize } from "./tables";
 
 /** Where a value came from. Every reading the AI makes points back at a frame the owner can see. */
 export interface Evidence {
@@ -31,7 +31,7 @@ export type CircuitKind =
 
 export interface CableReading {
   /** Size printed on the cable sheath, mm². Empty when the print can't be read. */
-  printedSize?: Reading<CableSize | null>;
+  printedSize?: Reading<PrintedSize | null>;
   brand?: Reading<string>;
   /** SON registration / MANCAP number or NIS marking printed on the cable. */
   sonMark?: Reading<string>;
