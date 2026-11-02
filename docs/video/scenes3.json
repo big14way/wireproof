@@ -1,0 +1,15 @@
+{
+  "base": "http://localhost:3000", "viewport": [1440, 810], "window": [1440, 900], "video": [1920, 1080],
+  "out": "clips", "accent": "#b4652a",
+  "scenes": [
+    {"name": "walls", "steps": [
+      ["goto", "/jobs/demo/walls", "h1:has-text(\"Wall map\")"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"sample\")", 800], ["click"], ["wait", 1500],
+      ["moveTo", "button:has-text(\"Map cables\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "/diagonal/i.test(document.body.innerText) && !/finds every|Mapping/.test('') && document.querySelectorAll('svg line, svg path, svg polyline').length > 0", 180000], ["wait", 2500],
+      ["scrollTo", "text=Cable runs", 120, 1400], ["wait", 2500], ["scrollBy", -600, 1000], ["wait", 500],
+      ["moveTo", "button:has-text(\"Show after plaster\")", 800], ["click"], ["wait", 1000],
+      ["waitUntil", "!/plastering the wall/i.test(document.body.innerText) && [...document.querySelectorAll('img')].filter(i => i.naturalWidth > 200).length >= 2", 240000], ["wait", 5000],
+      ["zoom", "text=After plaster", 1.35, 900, 4000], ["unzoom", 800], ["wait", 1000]]}
+  ]
+}

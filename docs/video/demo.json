@@ -45,31 +45,25 @@
   {
    "id": "s2",
    "kind": "broll",
-   "src": "../wireproof/probe/video/tiktok-pachitech-magnet-test.mp4",
+   "src": "footage/burnt-socket.mp4",
    "cut": [
-    [
-     8.0,
-     10.0
-    ],
-    [
-     16.0,
-     20.0
-    ],
-    [
-     22.0,
-     26.0
-    ]
+    0.0,
+    5.8
    ],
-   "fit": "blur",
-   "crop": [
-    576,
-    880,
-    0,
-    0
+   "head": "Fake copper, thin cable, plastered over",
+   "credit": "Photo: James Barrante (Sumpfchiller), CC BY-SA 3.0, Wikimedia Commons",
+   "vo": "Some of it is fake cable. Cable sold as copper that is really coated iron; a fridge magnet will tell you."
+  },
+  {
+   "id": "s2b",
+   "kind": "broll",
+   "src": "footage/burnt-room.mp4",
+   "cut": [
+    0.0,
+    5.8
    ],
-   "head": "Fake copper: a magnet tells you",
-   "credit": "Footage: Pa Chi Tech (TikTok)",
-   "vo": "Some of it is fake cable. Cable sold as copper that is really coated iron; a fridge magnet will tell you. Some of it is cable that's too thin for the breaker in front of it. And all of it gets plastered over."
+   "credit": "Photo: Pexels",
+   "vo": "Some of it is cable that's too thin for the breaker in front of it. And all of it gets plastered over."
   },
   {
    "id": "s3",
@@ -107,16 +101,17 @@
     ]
    ],
    "crop": [
-    760,
+    1640,
     1020,
-    970,
+    140,
     30
    ],
    "max_speed": 2.2,
    "step": "01",
    "head": "Reading the board",
    "sub": "Muse Spark reads every device; code checks each rating, and asks when the print is ambiguous",
-   "vo": "Muse Spark reads every breaker, left to right. Twenty-five, twenty, thirty, ten. A hundred-amp main. When the print on one breaker is ambiguous, it doesn't guess: it asks the electrician to check it by eye. And it notices what isn't there: no RCD. No earth-leakage protection on a whole house."
+   "vo": "Muse Spark reads every breaker, left to right. Twenty-five, twenty, thirty, ten. A hundred-amp main. When the print on one breaker is ambiguous, it doesn't guess: it asks the electrician to check it by eye. And it notices what isn't there: no RCD. No earth-leakage protection on a whole house.",
+   "device_h": 800
   },
   {
    "id": "d2",
@@ -134,16 +129,17 @@
     ]
    ],
    "crop": [
-    760,
+    1640,
     1020,
-    970,
+    140,
     30
    ],
    "max_speed": 2.2,
    "step": "02",
    "head": "Reading a cable print",
    "sub": "The size must appear in the text the model copied, or the reading is refused",
-   "vo": "Point it at a cable print and it reads the size off the sheath. But the model doesn't get the final say. Code checks that the size it reports is really in the text it copied, and that it's a size cable is actually made in. If the model isn't sure, WireProof refuses the reading and asks for a better photo. On twenty-one real photos it read twenty right, and the one it got wrong, it caught."
+   "vo": "Point it at a cable print and it reads the size off the sheath. But the model doesn't get the final say. Code checks that the size it reports is really in the text it copied, and that it's a size cable is actually made in. If the model isn't sure, WireProof refuses the reading and asks for a better photo. On twenty-one real photos it read twenty right, and the one it got wrong, it caught.",
+   "device_h": 800
   },
   {
    "id": "s4",
@@ -166,43 +162,29 @@
    "cut": [
     [
      3.0,
-     36.0
+     13.0
+    ],
+    [
+     21.0,
+     25.0
+    ],
+    [
+     47.0,
+     62.0
     ]
    ],
    "crop": [
-    1920,
-    1080,
-    0,
-    0
+    1640,
+    1020,
+    140,
+    30
    ],
-   "max_speed": 2.0,
+   "max_speed": 1.5,
    "step": "03",
    "head": "Mapping the wall",
    "sub": "SAM 3.1 traces each run on the block grid; Muse Image shows the wall after plaster",
-   "vo": "SAM 3.1 traces every conduit run, using the blocks as a ruler. This diagonal run fails: cables must run straight so anyone drilling later knows where they are. And then it keeps the map. After plastering, the owner can still see where every cable is."
-  },
-  {
-   "id": "d4",
-   "kind": "laptop",
-   "layout": "wide",
-   "src": "console.webm",
-   "cut": [
-    [
-     2.0,
-     20.5
-    ]
-   ],
-   "crop": [
-    1920,
-    1080,
-    0,
-    0
-   ],
-   "max_speed": 1.8,
-   "step": "04",
-   "head": "The agent console",
-   "sub": "Every tool call, every reading, the checklist, and the electrician's sign-off",
-   "vo": "Every step is on the record: what was said, what was read, what the code decided, and what is still open. The electrician signs off in the app."
+   "vo": "SAM 3.1 traces every conduit run, using the blocks as a ruler. This diagonal run fails: cables must run straight, so anyone drilling later knows where they are. Then Muse Image shows the wall after plaster, with the cables drawn where they really are. The owner keeps that picture.",
+   "device_h": 800
   },
   {
    "id": "d5",
@@ -216,16 +198,17 @@
     ]
    ],
    "crop": [
-    1040,
-    1050,
-    440,
+    1640,
+    1020,
+    140,
     30
    ],
    "max_speed": 2.0,
    "step": "05",
    "head": "The owner's report, on WhatsApp",
    "sub": "The verdict, the fixes in order, and the photo behind every one",
-   "vo": "When the electrician signs off, the owner gets the report on WhatsApp. Not a certificate; a screening report. The verdict, the fixes in order, and behind every fix, the photo it came from. Every rule is cited. Nothing in it is the model's opinion; the model reads, and the code decides."
+   "vo": "When the electrician signs off, the owner gets the report on WhatsApp. Not a certificate; a screening report. The verdict, the fixes in order, and behind every fix, the photo it came from. Every step is on the record, every rule is cited. The model reads; the code decides.",
+   "device_h": 800
   },
   {
    "id": "s5",
@@ -276,8 +259,9 @@
      "github.com/big14way/wireproof"
     ]
    ],
-   "footer": "Footage credited on screen: Pa Chi Tech, E'LIGHT ELECTRICALS, Bright Sky Electrical (TikTok); Pexels. Screening, not certification.",
+   "footer": "Footage credited on screen: E'LIGHT ELECTRICALS LTD (TikTok), Pexels, Wikimedia Commons. Screening, not certification.",
    "vo": "Every house gets plastered once. WireProof makes sure somebody looked first."
   }
- ]
+ ],
+ "captions": true
 }
