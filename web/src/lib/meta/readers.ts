@@ -110,8 +110,10 @@ export async function readBoard(media: Media): Promise<Checked<BoardReading>> {
     const kind = x.type.toUpperCase();
     const type: ProtectiveDevice["type"] = kind.includes("RCBO") ? "RCBO" : kind.includes("FUSE") ? "fuse" : "MCB";
     const curve = (["B", "C", "D"].includes(x.curve.toUpperCase()) ? x.curve.toUpperCase() : undefined) as ProtectiveDevice["curve"];
-    problems.push(...deviceProblems(i + 1, kind, x.rating_a, x.printed_text));
-    return { position: i + 1, kind, type, ratingA: x.rating_a, curve, sensitivityMA: x.sensitivity_ma, label: x.label };
+    // A surge protector is marked in kA (discharge current), not amps; one read as "40 A" would be a phantom breaker.
+    const ratingA = kind.includes("SPD") || kind.includes("SURGE") ? 0 : x.rating_a;
+    problems.push(...deviceProblems(i + 1, kind, ratingA, x.printed_text));
+    return { position: i + 1, kind, type, ratingA, curve, sensitivityMA: x.sensitivity_ma, label: x.label };
   });
   const rcdSeen = devices.some((x) => x.kind.includes("RCD") || x.kind.includes("RCBO") || x.sensitivityMA > 0);
   if (d.rcd_visible !== rcdSeen) problems.push("RCD answer disagrees with the device list.");

@@ -7,6 +7,8 @@ import { MARKET_RATINGS } from "../rules";
 export function deviceProblems(position: number, kind: string, ratingA: number, printedText: string): string[] {
   const problems: string[] = [];
   const breaker = kind.includes("MCB") || kind.includes("RCBO");
+  // Surge protectors print "40kA": that is discharge current, not a breaker rating, so no amps check applies.
+  if (kind.includes("SPD") || kind.includes("SURGE")) return problems;
   if (breaker && ratingA > 0 && !(MARKET_RATINGS as readonly number[]).includes(ratingA)) problems.push(`Device ${position}: ${ratingA} A is not a rating breakers are sold in.`);
   if (breaker && ratingA === 0) problems.push(`Device ${position}: rating unreadable.`);
   // Cross-check the rating against the text copied off the device: a breaker marked "B20" and "30A" is ambiguous.

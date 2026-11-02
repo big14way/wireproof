@@ -38,6 +38,8 @@ cd ~/Developer/wireproof/probe
 .venv/bin/python probe.py read breakers board/ --truth board_truth.csv --out out/board
 .venv/bin/python probe.py read magnet magnet/ --truth magnet_truth.csv --out out/magnet
 .venv/bin/python probe.py voice voice/ --truth voice_truth.csv
+# the app's own reader and verify-or-reshoot checks, scored the same way (needs web/.env.local):
+cd ../web && set -a && . ./.env.local && set +a && npx vite-node --config ../probe/app/vite.config.ts ../probe/app/cables.ts ../probe/cable ../probe/cable_truth.csv
 .venv/bin/python probe.py track wall/pan.mp4 --concept "conduit" --fps 4 --out out/conduit
 ```
 

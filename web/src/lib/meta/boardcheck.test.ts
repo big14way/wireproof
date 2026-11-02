@@ -22,6 +22,8 @@ describe("deviceProblems", () => {
   it("flags an unreadable breaker but not a surge protector with no rating", () => {
     expect(deviceProblems(6, "MCB", 0, "")).toEqual(["Device 6: rating unreadable."]);
     expect(deviceProblems(7, "SPD", 0, "Surge Protective Device QCQ-40 In: 40kA(8/20)")).toEqual([]);
+    // Read off the solar box: Spark took "40kA" as 40 A. The kA figure is not a rating, so nothing to check.
+    expect(deviceProblems(7, "SPD", 40, "Surge Protective Device QCQ-40 In: 40kA(8/20)")).toEqual([]);
   });
 });
 

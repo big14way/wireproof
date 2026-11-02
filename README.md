@@ -49,7 +49,21 @@ Turns are stateless: `store: false`, with encrypted reasoning replayed each turn
     - panel reader: photograph a breaker panel and see what's wrong;
     - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp.
   - **Sending the report:** the WhatsApp button opens a message with the verdict, the first fixes, whether the electrician has signed it off, and a share link. The link opens that one report and the photos on it without the passcode; it can't reach the copilot, the console, other jobs, or a photo the privacy gate blocked. Changing `SITE_PASSCODE` revokes every share link.
-  - **Demo data:** a sample first-fix job. The people and the faulty cable brand are made up, and the sample photos are AI-generated test images.
+  - **Demo data:** a sample first-fix job captured through the app. The board and cable photos are real (one home, Nov 2); the people are made up; the one wall photo is an AI-generated sample and is labelled so in the job.
+
+## Accuracy on real photos
+Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `probe/cable`, answer keys beside them). No house-wiring offcut was to hand, so the cable set is appliance and extension cords plus a 25 mm² battery cable: small embossed text, no ink, curved sheaths. Re-run with `probe/probe.py read …` and the vite-node script in `probe/README.md`.
+
+| Test | Photos | Result |
+|---|---|---|
+| Cable print: printed size | 21 (7 cables × 3 shots) | **20/21** read right by Muse Spark |
+| Cable print: the app's verify-or-reshoot check | 21 | **20 verified, all 20 right; the 1 wrong read was refused** (confidence 0.45, "film closer") and sent back for a better photo |
+| Cable print: brand text | 7 cables | 5/7 exact; two had letters misread ("YUXIN" → "LUXIN"). Brand never changes a verdict |
+| Breaker board: ratings | 3 photos, 20 devices | **18/20**; both shots of the house board 15/15. On the solar box Spark read a surge protector's "40kA" as 40 A twice, so the reader now zeroes a surge protector's rating |
+| Breaker board: RCD present? | 3 | 3/3 (none on any of them, which is the finding) |
+| Voice commands | 25 lines, Nigerian English, 5 over background noise | pending: recorded with `probe/record_voice.sh` |
+
+What "verified" means: code, not the model, checks that the size is one cable is made in, that it appears in the text copied off the sheath, and that the confidence is above 0.6. A reading that fails is kept as evidence but never changes a circuit; the electrician is asked for another photo.
 
 ## Deploy
 The app is one Node server with a data folder, so it runs as a container with a volume (`web/Dockerfile`).
