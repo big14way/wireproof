@@ -91,7 +91,51 @@
    "image": "bg-title.jpg",
    "tagline": "A hands-free copilot for the electrician. Proof of every reading for the owner.",
    "tag": "Meta Global AI Developer Hackathon \u00b7 Indie track",
-   "vo": "This is WireProof. A hands-free copilot for the electrician, on the phone already in their pocket. They talk to it while they work. It reads what the camera sees, and it keeps proof of every reading for the homeowner."
+   "vo": "This is WireProof: a hands-free copilot for the electrician, on the phone already in their pocket, that keeps proof of every reading for the homeowner."
+  },
+  {
+   "id": "p1",
+   "kind": "phone",
+   "src": "phone-copilot.mp4",
+   "cut": [
+    [
+     5.0,
+     40.0
+    ]
+   ],
+   "max_speed": 4.5,
+   "step": "01",
+   "head": "Start a job on the phone",
+   "sub": "Name the house, tick the circuits; each one is sized by the rules",
+   "vo": "An electrician starts a job on the phone in two minutes: the house, the owner's WhatsApp number, the circuits on the board."
+  },
+  {
+   "id": "p2",
+   "kind": "phone",
+   "src": "phone-copilot.mp4",
+   "cut": [
+    [
+     62.0,
+     66.5
+    ],
+    [
+     72.0,
+     79.0
+    ],
+    [
+     104.0,
+     109.0
+    ],
+    [
+     120.0,
+     133.0
+    ]
+   ],
+   "max_speed": 1.6,
+   "step": "02",
+   "head": "Talk to it",
+   "sub": "Muse Voice Transcribe hears Nigerian English; the copilot answers in a sentence, out loud",
+   "vo": "Then they talk to it. Muse Voice Transcribe hears Nigerian English. The copilot answers in one sentence and says it out loud: two point five square millimetre cable on a ten amp type C breaker. And when it doesn't have the board yet, it says so instead of guessing."
   },
   {
    "id": "s3b",
@@ -127,10 +171,10 @@
     30
    ],
    "max_speed": 2.2,
-   "step": "01",
+   "step": "03",
    "head": "Reading the board",
    "sub": "Muse Spark reads every device; code checks each rating, and asks when the print is ambiguous",
-   "vo": "Muse Spark reads every breaker, left to right. Twenty-five, twenty, thirty, ten. A hundred-amp main. When the print on one breaker is ambiguous, it doesn't guess: it asks the electrician to check it by eye. And it notices what isn't there: no RCD. No earth-leakage protection on a whole house.",
+   "vo": "Muse Spark reads every breaker, left to right. Twenty-five, twenty, thirty, ten. A hundred-amp main. When one print is ambiguous it doesn't guess; it asks the electrician to check by eye. And it sees what isn't there: no RCD.",
    "device_h": 800
   },
   {
@@ -155,10 +199,10 @@
     30
    ],
    "max_speed": 2.2,
-   "step": "02",
+   "step": "04",
    "head": "Reading a cable print",
    "sub": "The size must appear in the text the model copied, or the reading is refused",
-   "vo": "Point it at a cable print and it reads the size off the sheath. But the model doesn't get the final say. Code checks that the size it reports is really in the text it copied, and that it's a size cable is actually made in. If the model isn't sure, WireProof refuses the reading and asks for a better photo. On twenty-one real photos it read twenty right, and the one it got wrong, it caught.",
+   "vo": "Point it at a cable print and it reads the size off the sheath. The model doesn't get the final say: code checks the size is really in the text it copied, and refuses a reading it isn't sure of. On twenty-one real photos it read twenty right, and caught the one it got wrong.",
    "device_h": 800
   },
   {
@@ -199,7 +243,7 @@
     30
    ],
    "max_speed": 1.5,
-   "step": "03",
+   "step": "05",
    "head": "Mapping the wall",
    "sub": "SAM 3.1 traces each run on the block grid; Muse Image shows the wall after plaster",
    "vo": "SAM 3.1 traces every conduit run, using the blocks as a ruler. This diagonal run fails: cables must run straight, so anyone drilling later knows where they are. Then Muse Image shows the wall after plaster, with the cables drawn where they really are. The owner keeps that picture.",
@@ -223,7 +267,7 @@
     30
    ],
    "max_speed": 2.0,
-   "step": "05",
+   "step": "06",
    "head": "The owner's report, on WhatsApp",
    "sub": "The verdict, the fixes in order, and the photo behind every one",
    "vo": "When the electrician signs off, the owner gets the report on WhatsApp. Not a certificate; a screening report. The verdict, the fixes in order, and behind every fix, the photo it came from. Every step is on the record, every rule is cited. The model reads; the code decides.",
@@ -258,7 +302,7 @@
     }
    ],
    "image": "../wireproof/probe/board/house-board-close.jpg",
-   "vo": "Four Meta models do the work. Muse Voice Transcribe hears the electrician, in Nigerian English. Muse Spark reads boards and cables and plans each step. SAM 3.1 maps the walls. Muse Image shows the owner the wall after plaster. And Muse Spark Open runs the privacy gate, so no photo with a face in it ever leaves the phone."
+   "vo": "Four Meta models do the work: Muse Voice Transcribe hears the electrician, Muse Spark reads and plans, SAM 3.1 maps the walls, Muse Image shows the wall after plaster. Muse Spark Open runs the privacy gate, so no photo with a face in it leaves the phone."
   },
   {
    "id": "s6",
