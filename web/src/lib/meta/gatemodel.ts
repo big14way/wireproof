@@ -99,6 +99,45 @@ export async function gate(dataUrl: string, expected?: Scene): Promise<GateResul
     if (!verdict) throw new Error(`${h.name} gate returned no JSON verdict`);
     return verdict;
   };
-  const verdict = await hedged(ask, h.hedgeMs, h.timeoutMs);
+  const verdict = await withWakeUp(() => hedged(ask, h.hedgeMs, h.timeoutMs), h.name);
+  lastAnswer = Date.now();
   return { ...decide(verdict, expected), verdict, ms: Date.now() - started, name: h.name, model: h.model, host: new URL(h.url).host };
+}
+
+/**
+ * A hosted gate that has been idle scales to zero and answers the first request with a quick 5xx or 429 while it
+ * wakes up. Those come back in well under a second, so the caller would otherwise see "didn't answer" at once:
+ * wait and try again, for about a minute in all, before giving up.
+ */
+async function withWakeUp<T>(call: () => Promise<T>, name: string): Promise<T> {
+  const waits = [3_000, 6_000, 12_000, 20_000];
+  for (let i = 0; ; i++) {
+    const started = Date.now();
+    try {
+      return await call();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      const quick = Date.now() - started < 5_000;
+      const waking = /gate (5\d\d|429|408)\b/.test(msg) || /scal|cold|starting|loading|warming|unavailable/i.test(msg);
+      if (i >= waits.length || !(quick || waking)) throw e;
+      console.warn(`${name} gate: ${msg.slice(0, 120)}; retry ${i + 1} in ${waits[i] / 1000} s`);
+      await new Promise((r) => setTimeout(r, waits[i]));
+    }
+  }
+}
+
+let lastAnswer = 0;
+// A 48×48 grey JPEG: enough for the gate to answer "other", cheap enough to send every few minutes.
+const WARM_IMAGE = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA0JCgsKCA0LCgsODg0PEyAVExISEyccHhcgLikxMC4pLSwzOko+MzZGNywtQFdBRkxOUlNSMj5aYVpQYEpRUk//2wBDAQ4ODhMREyYVFSZPNS01T09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0//wAARCAAwADADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD/2Q==";
+
+/** Keep a hosted gate awake: send it a tiny image if it hasn't answered anything for a while. Called from the relay's check-in. */
+export async function warmGate(idleMs = 8 * 60_000): Promise<"warm" | "warmed" | "off" | "failed"> {
+  if (!HOST) return "off";
+  if (Date.now() - lastAnswer < idleMs) return "warm";
+  try {
+    await gate(WARM_IMAGE);
+    return "warmed";
+  } catch {
+    return "failed";
+  }
 }
