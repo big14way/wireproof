@@ -10,6 +10,10 @@ describe("numbersIn", () => {
     expect(numbersIn("two point five square millimetre on a ten amp breaker")).toEqual([2.5, 10]);
     expect(numbersIn("1,200 W")).toEqual([1200]);
     expect(numbersIn("2.5 mm2 cable")).toEqual([2.5]);
+    // Muse Voice Transcribe writes small numbers as words: a breaker position has no unit after it.
+    expect(numbersIn("breaker four feeds the lighting")).toEqual([4]);
+    expect(numbersIn("I checked breaker four by eye, it is a B twenty")).toEqual([4, 20]);
+    expect(numbersIn("one more photo")).toEqual([]);
   });
   it("ignores number words that aren't quantities", () => {
     expect(numbersIn("Take one more photo of the print")).toEqual([]);

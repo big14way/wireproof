@@ -12,7 +12,10 @@ const key = (n: number) => String(Math.round(n * 1e6) / 1e6);
 export function numbersIn(text: string): number[] {
   const plain = text.replace(/(\d),(\d{3})\b/g, "$1$2").replace(/\b(\d+) point (\d+)\b/gi, "$1.$2").replace(/mm2\b/gi, "mm²");
   const out = new Set([...plain.matchAll(/\d+(?:\.\d+)?/g)].map((m) => key(Number(m[0]))));
-  for (const m of normaliseSpeech(plain).matchAll(new RegExp(String.raw`(\d+(?:\.\d+)?)\s*${UNIT}`, "g"))) out.add(key(Number(m[1])));
+  const spoken = normaliseSpeech(plain);
+  for (const m of spoken.matchAll(new RegExp(String.raw`(\d+(?:\.\d+)?)\s*${UNIT}`, "g"))) out.add(key(Number(m[1])));
+  // A breaker position or a curve rating is said without a unit: "breaker four feeds the lighting", "it is a B twenty".
+  for (const m of spoken.matchAll(new RegExp(String.raw`\b(?:breaker|device|position|number|circuit|mcb|rcbo|no)\s+(\d+)\b|\b[bcd]\s?(\d{1,3})\b`, "g"))) out.add(key(Number(m[1] ?? m[2])));
   return [...out].map(Number);
 }
 
