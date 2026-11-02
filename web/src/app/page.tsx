@@ -33,7 +33,8 @@ export default function Home() {
         catches fake copper with a magnet test, and gives the owner per-circuit proof before the walls are closed.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <ButtonLink href="/jobs/demo">Open the demo job</ButtonLink>
+        <ButtonLink href="/jobs/new">Start a job</ButtonLink>
+        <ButtonLink href="/jobs/demo" variant="ghost">Open the demo job</ButtonLink>
         <ButtonLink href="/panel" variant="ghost">Read a breaker panel</ButtonLink>
       </div>
 

@@ -22,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               WireProof
             </Link>
             <nav className="flex gap-4 whitespace-nowrap text-sm text-white/80">
-              <Link href="/jobs/demo" className="hover:text-white">Demo job</Link>
+              <Link href="/jobs" className="hover:text-white">Jobs</Link>
               <Link href="/jobs/demo/copilot" className="hover:text-white">Copilot</Link>
               <Link href="/jobs/demo/walls" className="hidden hover:text-white sm:inline">Wall map</Link>
               <Link href="/panel" className="hidden hover:text-white sm:inline">Read a panel</Link>

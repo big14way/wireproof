@@ -1,4 +1,8 @@
-import type { Board, Evidence } from "./rules";
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import path from "node:path";
+import { DATA_DIR } from "./paths";
+import { airConditioner, designCircuit, PRACTICE_MIN_SIZE, pump, type Board, type CableSize, type Circuit, type CircuitKind, type Evidence } from "./rules";
 
 export interface ChecklistItem {
   id: string;
@@ -114,6 +118,109 @@ const demo: Job = {
 
 const JOBS: Record<string, Job> = { demo };
 
+// ---------- Jobs an electrician starts on the phone ----------
+// One JSON file per job under DATA_DIR/jobs, read once at first use and kept in memory; the case record and the
+// captured media for it live beside the other jobs' under DATA_DIR/cases.
+
+const JOBS_DIR = path.join(DATA_DIR, "jobs");
+let saved: Map<string, Job> | null = null;
+
+function savedJobs(): Map<string, Job> {
+  if (saved) return saved;
+  saved = new Map();
+  try {
+    for (const f of readdirSync(JOBS_DIR)) {
+      if (!f.endsWith(".json")) continue;
+      try {
+        const j = JSON.parse(readFileSync(path.join(JOBS_DIR, f), "utf8")) as Job;
+        saved.set(j.id, j);
+      } catch {
+        // a half-written file is skipped, not fatal
+      }
+    }
+  } catch {
+    // no jobs started on this machine yet
+  }
+  return saved;
+}
+
 export function getJob(id: string): Job | undefined {
-  return JOBS[id];
+  return JOBS[id] ?? savedJobs().get(id);
+}
+
+/** Every job on this machine, newest first; the demo last. */
+export function listJobs(): Job[] {
+  const mine = [...savedJobs().values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  return [...mine, ...Object.values(JOBS)];
+}
+
+/** What an electrician can put on a new job's board. Loads and run lengths are typical starting values; the electrician corrects them by voice on site. */
+export const CIRCUIT_TEMPLATES = {
+  lighting: { name: "Lighting, whole house", kind: "lighting" as CircuitKind, loadW: 320, lengthM: 28 },
+  "kitchen-ring": { name: "Kitchen sockets (ring)", kind: "sockets-ring" as CircuitKind, lengthM: 42 },
+  "sockets-radial": { name: "Bedroom sockets", kind: "sockets-radial" as CircuitKind, lengthM: 30 },
+  ac: { name: "Air conditioner", kind: "air-conditioner" as CircuitKind, lengthM: 18, param: "hp" as const },
+  heater: { name: "Water heater", kind: "water-heater" as CircuitKind, lengthM: 12, param: "kw" as const },
+  pump: { name: "Pumping machine", kind: "pump" as CircuitKind, lengthM: 25, param: "hp" as const },
+  cooker: { name: "Cooker", kind: "cooker" as CircuitKind, loadW: 6000, lengthM: 15 },
+} as const;
+export type TemplateId = keyof typeof CIRCUIT_TEMPLATES;
+
+export interface NewJobInput {
+  title: string;
+  address: string;
+  owner: { name: string; phone: string };
+  electrician: { name: string; licence: string };
+  /** Each circuit on the board: a template plus its size (HP for an AC or pump, kW for a heater) and an optional room name. */
+  circuits: { template: TemplateId; size?: number; label?: string }[];
+}
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "job";
+const clean = (s: unknown, max = 80) => String(s ?? "").trim().slice(0, max);
+
+/** Build the job from the templates: the design size per circuit comes from the same rules the checks use. */
+export function createJob(input: NewJobInput): Job {
+  const title = clean(input.title) || "New job";
+  const id = `${slug(title)}-${randomBytes(2).toString("hex")}`;
+  const counts: Record<string, number> = {};
+  const circuits: Circuit[] = input.circuits.slice(0, 16).map((c) => {
+    const t = CIRCUIT_TEMPLATES[c.template];
+    if (!t) throw new Error(`Unknown circuit template: ${c.template}`);
+    const n = (counts[c.template] = (counts[c.template] ?? 0) + 1);
+    const size = Number(c.size) || undefined;
+    let loadW: number | undefined = "loadW" in t ? t.loadW : undefined;
+    let powerFactor: number | undefined;
+    let name = clean(c.label, 40) ? `${clean(c.label, 40)} ${t.name.toLowerCase()}` : t.name;
+    if ("param" in t && t.param === "hp" && size) {
+      const p = t.kind === "pump" ? pump(size) : airConditioner(size);
+      loadW = p.watts; powerFactor = p.powerFactor; name = `${name} (${size} HP)`;
+    } else if ("param" in t && t.param === "kw" && size) {
+      loadW = Math.round(size * 1000); name = `${name} (${size} kW)`;
+    }
+    const designed = loadW ? designCircuit({ kind: t.kind, loadW, powerFactor, lengthM: t.lengthM }) : undefined;
+    const designSize: CableSize = designed?.cableSize ?? PRACTICE_MIN_SIZE[t.kind];
+    return {
+      id: n > 1 ? `${c.template}-${n}` : c.template, name, kind: t.kind, loadW, powerFactor, lengthM: t.lengthM, designSize,
+      cable: {}, domestic: true,
+    };
+  });
+  if (!circuits.length) throw new Error("Pick at least one circuit");
+  const job: Job = {
+    id, title, address: clean(input.address) || "Address not given", stage: "First fix: conduits and cables in, walls not yet plastered",
+    owner: { name: clean(input.owner?.name) || "Owner", phone: clean(input.owner?.phone, 24) },
+    electrician: { name: clean(input.electrician?.name) || "Electrician", licence: clean(input.electrician?.licence, 40) },
+    createdAt: new Date().toISOString().slice(0, 10),
+    board: { id: "db1", name: "Main distribution board", circuits },
+    checklist: [
+      { id: "k1", label: "Photograph the distribution board, cover off", done: false },
+      { id: "k2", label: "Cable print and magnet test for each circuit", done: false },
+      { id: "k3", label: "Earth conductor visible in each conduit", done: false },
+      { id: "k4", label: "Film every conduit run before plastering", done: false },
+      { id: "k5", label: "Electrician confirms the report", done: false },
+    ],
+  };
+  if (!existsSync(JOBS_DIR)) mkdirSync(JOBS_DIR, { recursive: true });
+  writeFileSync(path.join(JOBS_DIR, `${id}.json`), JSON.stringify(job, null, 1));
+  savedJobs().set(id, job);
+  return job;
 }
