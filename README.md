@@ -56,11 +56,23 @@ The app is one Node server with a data folder, so it runs as a container with a 
 
 1. Save the job you want visitors to see as the seed: capture it locally, then `cd web && npm run seed:save`. A deploy with no saved case opens on `web/seed/`. By default only media a reading used is copied, so nothing the privacy gate blocked is published.
 2. Build and run: `docker build -t wireproof web/`, then `docker run -p 3000:3000 --env-file web/.env.local -v wireproof-data:/data wireproof`. On a host, set the same variables (`MODEL_API_KEY`, `BASETEN_API_KEY`, `SITE_PASSCODE`) and mount a volume at `/data`. On Railway, also set `RAILWAY_RUN_UID=0` so the app can write to the volume.
-3. **Open `/api/health` on the host before anything else.** Some cloud regions get an empty model list from Meta's API with a key that works elsewhere. A healthy host returns `"ok": true` and lists `muse-spark-1.3`, `sam-3.1`, `muse-voice-transcribe-1.0` and `muse-image-1.0`. The check spends no credits.
+3. **Open `/api/health` on the host before anything else.** A healthy host returns `"ok": true` and lists `muse-spark-1.3`, `sam-3.1`, `muse-voice-transcribe-1.0` and `muse-image-1.0`. The check spends no credits.
 
 The image sets `WIREPROOF_HOSTED=1`: requests addressed to `localhost` no longer skip the passcode, and "start again" in the console restores the seeded job instead of an empty one.
 
-If no host region reaches Meta's API, run it from this machine instead: `npm run build && npm run start`, plus a Cloudflare tunnel.
+### Model calls from a cloud host: the relay
+Meta's Model API decides availability by where a call comes from. The key used here lists all nine models from a laptop in Nigeria and an empty list from Railway (US, Amsterdam and Singapore); other builders saw the same from Render US and Frankfurt, and "not available in your region" blocks are reported from Vietnam, Indonesia, Korea, Argentina and Canada ([opencode #47949](https://github.com/anomalyco/opencode/issues/47949), [HN](https://news.ycombinator.com/item?id=48847428)).
+
+So the hosted site keeps everything except the model calls, and sends those through a relay on a machine where the key works (`relay/meta-relay.mjs`):
+- The relay forwards `/v1/*` to `api.meta.ai` with the real key. The key never leaves that machine; the host holds only a random shared token (`META_RELAY_TOKEN`, the same value on both sides).
+- A Cloudflare quick tunnel gives the relay an HTTPS address, and the relay posts it to `/api/relay` every minute, so the host follows the address if it changes. A relay silent for 3 minutes counts as offline, and the UI says so instead of failing.
+- `META_VIA_RELAY=1` on the host turns this on. `META_DAILY_CALL_CAP` (400 on the demo) stops a public site from running up the bill after the hackathon credits end; Meta's own spend alerts don't stop billing.
+- `/api/health` reports `meta.via` (`direct` or `relay`) and the relay's last check-in.
+
+Run it on the machine with the working key:
+```
+node relay/meta-relay.mjs https://wireproof-production.up.railway.app
+```
 - `infra/glimmer_modal.py` serves Muse Glimmer with llama.cpp on a Modal GPU, as the alternative privacy gate.
 - `probe/` holds the go/no-go tests that check Meta's models can read cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
 

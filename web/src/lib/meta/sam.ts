@@ -1,9 +1,8 @@
 import "server-only";
 import { decodeMaskToRaster, parseImageStream, recordsOfKind, type ResponsesEvent } from "@meta-sam/parser";
 import { buildWallMap } from "@/lib/wallmap";
-import { MetaApiError, SAM } from "./client";
+import { MetaApiError, metaFetch, SAM } from "./client";
 
-const BASE = "https://api.meta.ai/v1";
 
 export interface SamObject {
   id: string;
@@ -99,11 +98,9 @@ function fitLines(raster: Uint8Array, w: number, h: number, left: number, top: n
 /** Segment every instance of a short noun phrase in one photo with SAM 3.1, with masks and fitted lines. */
 export async function samImage(dataUrl: string, concept: string, opts: { lines?: boolean } = {}): Promise<SamImageResult> {
   const started = Date.now();
-  const key = process.env.MODEL_API_KEY;
-  if (!key) throw new MetaApiError(500, "missing_key", "MODEL_API_KEY is not set on the server");
-  const res = await fetch(`${BASE}/responses`, {
+  const res = await metaFetch("/responses", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: SAM,
       metadata: { mask_encoding: "one_bit", include_confidence: "true" },

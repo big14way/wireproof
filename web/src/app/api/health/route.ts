@@ -2,6 +2,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { connection } from "next/server";
 import { SAM, SPARK, VOICE } from "@/lib/meta/client";
+import { metaTarget, relayState, RELAY_STALE_MS, VIA_RELAY } from "@/lib/meta/upstream";
 import { gateInfo } from "@/lib/meta/gatemodel";
 import { MUSE_IMAGE } from "@/lib/meta/image";
 import { DATA_DIR, HOSTED } from "@/lib/paths";
@@ -15,12 +16,17 @@ const NEEDED = [SPARK, SAM, VOICE, MUSE_IMAGE];
  */
 export async function GET() {
   await connection();
-  const meta: { reachable: boolean; status?: number; models: string[]; missing: string[]; error?: string } = { reachable: false, models: [], missing: NEEDED };
+  const meta: { reachable: boolean; via?: string; status?: number; models: string[]; missing: string[]; error?: string } = { reachable: false, models: [], missing: NEEDED };
   const key = process.env.MODEL_API_KEY;
+  const target = await metaTarget();
+  const relay = await relayState();
+  const relayInfo = VIA_RELAY ? { wanted: true, connected: Boolean(target), lastSeenSecondsAgo: relay ? Math.round((Date.now() - relay.at) / 1000) : null, staleAfterSeconds: RELAY_STALE_MS / 1000 } : { wanted: false };
   if (!key) meta.error = "MODEL_API_KEY is not set";
+  else if (!target) meta.error = "Model relay offline";
   else {
+    meta.via = target.via;
     try {
-      const res = await fetch("https://api.meta.ai/v1/models", { headers: { Authorization: `Bearer ${key}` }, signal: AbortSignal.timeout(10_000) });
+      const res = await fetch(`${target.base}/models`, { headers: { Authorization: `Bearer ${key}`, ...target.headers }, signal: AbortSignal.timeout(10_000) });
       meta.status = res.status;
       const body = await res.json().catch(() => ({}));
       meta.models = ((body?.data ?? []) as { id: string }[]).map((m) => m.id).sort();
@@ -46,7 +52,7 @@ export async function GET() {
   const gate = gateInfo();
   const ok = meta.reachable && meta.missing.length === 0;
   return Response.json(
-    { ok, meta, privacyGate: gate, dataWritable, hosted: HOSTED, passcode: Boolean(process.env.SITE_PASSCODE?.trim()) },
+    { ok, meta, relay: relayInfo, privacyGate: gate, dataWritable, hosted: HOSTED, passcode: Boolean(process.env.SITE_PASSCODE?.trim()) },
     { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }

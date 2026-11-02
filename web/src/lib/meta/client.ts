@@ -2,7 +2,8 @@ import "server-only";
 
 // Thin server-side client for Meta's Model API. The key stays on the server; the browser only ever
 // talks to our own /api routes.
-const BASE = "https://api.meta.ai/v1";
+import { metaTarget, takeCall } from "./upstream";
+
 export const SPARK = process.env.SPARK_MODEL ?? "muse-spark-1.3";
 export const SAM = "sam-3.1";
 export const VOICE = "muse-voice-transcribe-1.0";
@@ -17,6 +18,17 @@ function key(): string {
   const k = process.env.MODEL_API_KEY;
   if (!k) throw new MetaApiError(500, "missing_key", "MODEL_API_KEY is not set on the server");
   return k;
+}
+
+/**
+ * One call to Meta's API, direct or through the relay (see upstream.ts), counted against the daily cap.
+ * `path` is relative to /v1. Headers are merged with the key and the relay token.
+ */
+export async function metaFetch(p: string, init: RequestInit & { headers?: Record<string, string> }): Promise<Response> {
+  const target = await metaTarget();
+  if (!target) throw new MetaApiError(503, "relay_offline", "The model relay is offline: the machine that reaches Meta's API isn't connected right now.");
+  if (!(await takeCall())) throw new MetaApiError(429, "daily_cap", "Today's model-call budget is used up. Try again tomorrow.");
+  return fetch(`${target.base}${p}`, { ...init, headers: { Authorization: `Bearer ${key()}`, ...target.headers, ...(init.headers ?? {}) } });
 }
 
 async function fail(res: Response): Promise<never> {
@@ -58,9 +70,9 @@ export async function sparkJSON<T>(opts: {
   effort?: "low" | "medium" | "high";
 }): Promise<{ data: T; usage?: Usage; model: string; ms: number }> {
   const started = Date.now();
-  const res = await fetch(`${BASE}/responses`, {
+  const res = await metaFetch("/responses", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: SPARK,
       reasoning: { effort: opts.effort ?? "low" },
@@ -94,9 +106,9 @@ export async function sparkTurn(opts: {
   effort?: "minimal" | "low" | "medium" | "high";
 }): Promise<{ output: ResponseItem[]; usage?: Usage; ms: number }> {
   const started = Date.now();
-  const res = await fetch(`${BASE}/responses`, {
+  const res = await metaFetch("/responses", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: SPARK,
       instructions: opts.instructions,
@@ -124,7 +136,7 @@ export async function transcribe(wav: Blob, keywords: string[] = []): Promise<{ 
     new Blob([JSON.stringify({ mode: "PUSH_TO_TALK", model: VOICE, audioEncoding: "WAV", keywords, languageBias: ["English"] })], { type: "application/json" }),
   );
   form.set("audio", wav, "speech.wav");
-  const res = await fetch(`${BASE}/asr/transcribe`, { method: "POST", headers: { Authorization: `Bearer ${key()}` }, body: form });
+  const res = await metaFetch("/asr/transcribe", { method: "POST", body: form });
   if (!res.ok) await fail(res);
   const body = await res.json();
   return { transcript: body.transcript ?? "", ms: Date.now() - started };
@@ -162,9 +174,9 @@ export function parseSam(text: string): Map<number, SamBox[]> {
 /** Find every instance of a short noun phrase in one image with SAM 3.1. */
 export async function samImage(dataUrl: string, concept: string): Promise<{ boxes: SamBox[]; ms: number }> {
   const started = Date.now();
-  const res = await fetch(`${BASE}/responses`, {
+  const res = await metaFetch("/responses", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key()}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: SAM,
       metadata: { mask_encoding: "one_bit", include_confidence: "true" },

@@ -44,7 +44,7 @@ export function proxy(request: NextRequest) {
   if (!PASSCODE) return pass(request, "full");
   const { pathname } = request.nextUrl;
   if (!HOSTED && !request.headers.has("cf-ray") && LOCAL.has(hostOf(request))) return pass(request, "full");
-  if (pathname === "/unlock" || pathname === "/api/unlock" || pathname === "/api/health") return pass(request, "full");
+  if (pathname === "/unlock" || pathname === "/api/unlock" || pathname === "/api/health" || pathname === "/api/relay") return pass(request, "full");
   if (matches(request.cookies.get(COOKIE)?.value, PASSCODE)) return pass(request, "full");
   const shared = viaShare(request, PASSCODE);
   if (shared) return shared;

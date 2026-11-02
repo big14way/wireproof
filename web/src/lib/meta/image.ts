@@ -1,17 +1,14 @@
 import "server-only";
-import { MetaApiError } from "./client";
+import { MetaApiError, metaFetch } from "./client";
 
-const BASE = "https://api.meta.ai/v1";
 export const MUSE_IMAGE = "muse-image-1.0";
 
 /** Edit a photo with Muse Image and return the result as a JPEG data URL. */
 export async function editImage(dataUrl: string, prompt: string): Promise<{ dataUrl: string; ms: number }> {
   const started = Date.now();
-  const key = process.env.MODEL_API_KEY;
-  if (!key) throw new MetaApiError(500, "missing_key", "MODEL_API_KEY is not set on the server");
-  const res = await fetch(`${BASE}/images/edits`, {
+  const res = await metaFetch("/images/edits", {
     method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: MUSE_IMAGE,
       prompt,
