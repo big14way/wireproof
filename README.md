@@ -21,6 +21,41 @@ Built from scratch for the [Meta Global AI Developer Hackathon](https://cerebral
 | Show "your wall after plaster" with an X-ray of the runs, and "your board, corrected" | Muse Image |
 | Privacy gate: checks every photo for faces, people and private text before it leaves | Muse Spark Open (open weights, on Baseten), or Muse Glimmer on our own server |
 
+## How it fits together
+```mermaid
+flowchart LR
+  subgraph Phone["Electrician's phone (browser)"]
+    V[Tap to talk] --> A
+    C[Camera: board, cable print, magnet clip, wall] --> A
+  end
+  subgraph Server["WireProof server (Next.js)"]
+    A[/api/jobs/:id/agent] --> G{Privacy gate}
+    G -- "face, person or private text" --> X[Blocked: never leaves]
+    G -- pass --> L[Agent loop: Muse Spark plans a step]
+    L --> T[Tools: read_board, read_cable_print, magnet_test, map_wall, assign_breaker, record_observation, check_circuit, size_cable, submit_memo]
+    T --> R[Rules engine: BS 7671 tables, every finding cites its regulation]
+    T --> K[Code verification: size must be in the copied print, rating must match the device, numbers must come from a tool or the electrician]
+    K --> Case[(Case record: evidence, checklist, memo, egress log)]
+    R --> Case
+  end
+  subgraph Meta["Meta models"]
+    S[Muse Spark 1.3: plan, read, judge]
+    W[Muse Voice Transcribe]
+    M[SAM 3.1: conduit runs on the block grid]
+    I[Muse Image: the wall after plaster, the board corrected]
+    O[Muse Spark Open on Baseten: the gate]
+  end
+  V --> W
+  G --> O
+  L --> S
+  T --> S
+  T --> M
+  T --> I
+  Case --> Rep[Owner's report: verdict, fixes, the photo behind each one]
+  Rep -- share link --> WA[WhatsApp]
+```
+Every model call from a cloud host goes through the relay described under Deploy, because Meta's API answers only from allowed locations. Nothing a model says changes a circuit until the code checks agree with it.
+
 ## The agent
 Each request from the electrician (spoken, typed, or a photo or clip) starts a run: Muse Spark plans, calls a tool, reads the result and decides the next step, until it can answer in one or two spoken sentences. Every step is saved to the job's case record and shown live in the agent console.
 
@@ -47,7 +82,9 @@ Turns are stateless: `store: false`, with encrypted reasoning replayed each turn
     - agent console: every run step by step, the case record, the checklist, and the memo with the electrician's sign-off;
     - wall map: conduit runs and the no-drill zones on a chased wall, plus the X-ray over the plastered render;
     - panel reader: photograph a breaker panel and see what's wrong;
-    - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp.
+    - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp;
+    - start a job (`/jobs/new`): name the house, tick the circuits (ACs by HP, heater by kW, pump), and the copilot opens on it with every circuit sized by the rules;
+    - the panel reader (`/panel`) and the landing page are open to anyone without the passcode, so a visitor can try it on their own board.
   - **Sending the report:** the WhatsApp button opens a message with the verdict, the first fixes, whether the electrician has signed it off, and a share link. The link opens that one report and the photos on it without the passcode; it can't reach the copilot, the console, other jobs, or a photo the privacy gate blocked. Changing `SITE_PASSCODE` revokes every share link.
   - **Demo data:** a sample first-fix job captured through the app. The board and cable photos are real (one home, Nov 2); the people are made up; the one wall photo is an AI-generated sample and is labelled so in the job.
 
