@@ -43,23 +43,47 @@
   {
    "id": "s2",
    "kind": "broll",
-   "src": "footage/burnt-socket.mp4",
+   "src": "../wireproof/probe/video/tiktok-efixx-fake-cable.mp4",
    "cut": [
-    0.0,
-    5.8
+    [
+     0.0,
+     7.5
+    ],
+    [
+     8.5,
+     14.5
+    ]
    ],
-   "head": "Fake copper, thin cable, plastered over",
-   "vo": "Some of it is fake cable. Cable sold as copper that is really coated iron; a fridge magnet will tell you."
+   "head": "Fake copper, plastered over",
+   "vo": "Some of it is fake cable: sold as copper, really coated iron. A fridge magnet, or a flame, will tell you.",
+   "fit": "blur",
+   "crop": [
+    380,
+    560,
+    196,
+    100
+   ],
+   "max_speed": 1.6
   },
   {
    "id": "s2b",
    "kind": "broll",
-   "src": "footage/burnt-room.mp4",
+   "src": "../wireproof/probe/video/tiktok-snaginspector-cables.mp4",
    "cut": [
-    0.0,
-    5.8
+    [
+     22.0,
+     34.0
+    ]
    ],
-   "vo": "Some of it is cable that's too thin for the breaker in front of it. And all of it gets plastered over."
+   "vo": "Some of it is cable that's too thin for the breaker in front of it. And all of it gets plastered over.",
+   "fit": "blur",
+   "crop": [
+    480,
+    440,
+    0,
+    414
+   ],
+   "max_speed": 1.6
   },
   {
    "id": "s3",
