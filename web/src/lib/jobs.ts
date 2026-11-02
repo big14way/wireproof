@@ -119,38 +119,35 @@ const demo: Job = {
 const JOBS: Record<string, Job> = { demo };
 
 // ---------- Jobs an electrician starts on the phone ----------
-// One JSON file per job under DATA_DIR/jobs, read once at first use and kept in memory; the case record and the
-// captured media for it live beside the other jobs' under DATA_DIR/cases.
+// One JSON file per job under DATA_DIR/jobs, read from disk on every lookup. Pages and API routes are separate
+// bundles on the server, each with its own module state, so an in-memory list filled in one of them is invisible
+// to the other: the file is the only shared truth, and it is small.
 
 const JOBS_DIR = path.join(DATA_DIR, "jobs");
-let saved: Map<string, Job> | null = null;
+const SAFE_ID = /^[a-z0-9-]{1,40}$/;
 
-function savedJobs(): Map<string, Job> {
-  if (saved) return saved;
-  saved = new Map();
+function readJob(id: string): Job | undefined {
+  if (!SAFE_ID.test(id)) return undefined;
   try {
-    for (const f of readdirSync(JOBS_DIR)) {
-      if (!f.endsWith(".json")) continue;
-      try {
-        const j = JSON.parse(readFileSync(path.join(JOBS_DIR, f), "utf8")) as Job;
-        saved.set(j.id, j);
-      } catch {
-        // a half-written file is skipped, not fatal
-      }
-    }
+    return JSON.parse(readFileSync(path.join(JOBS_DIR, `${id}.json`), "utf8")) as Job;
   } catch {
-    // no jobs started on this machine yet
+    return undefined;
   }
-  return saved;
 }
 
 export function getJob(id: string): Job | undefined {
-  return JOBS[id] ?? savedJobs().get(id);
+  return JOBS[id] ?? readJob(id);
 }
 
 /** Every job on this machine, newest first; the demo last. */
 export function listJobs(): Job[] {
-  const mine = [...savedJobs().values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  let files: string[] = [];
+  try {
+    files = readdirSync(JOBS_DIR).filter((f) => f.endsWith(".json"));
+  } catch {
+    // no jobs started on this machine yet
+  }
+  const mine = files.map((f) => readJob(f.slice(0, -5))).filter((j): j is Job => Boolean(j)).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   return [...mine, ...Object.values(JOBS)];
 }
 
@@ -221,6 +218,5 @@ export function createJob(input: NewJobInput): Job {
   };
   if (!existsSync(JOBS_DIR)) mkdirSync(JOBS_DIR, { recursive: true });
   writeFileSync(path.join(JOBS_DIR, `${id}.json`), JSON.stringify(job, null, 1));
-  savedJobs().set(id, job);
   return job;
 }
