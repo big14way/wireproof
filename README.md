@@ -4,7 +4,10 @@
 
 WireProof is a hands-free copilot for the electrician wiring a house. The homeowner gets proof, before the walls are plastered, that every circuit has the right cable, real copper and the right protection. Afterwards they get an "X-ray" map of where every cable runs inside their walls.
 
-Built from scratch for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon) (Oct 26 – Nov 4, 2026). Every line in this repo was written during the event, and nothing is pre-existing.
+- **Live:** https://wireproof-production.up.railway.app (the landing page and the panel reader at `/panel` are open; the rest is behind the passcode given in the submission)
+- **Video (3 min):** https://youtu.be/TkUPQL70WRc
+
+Built from scratch for the [Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon) (Oct 26 – Nov 4, 2026). Every line in this repo was written during the event; nothing is pre-existing.
 
 ## Why
 - Lagos recorded 1,685 fires and 133 deaths in 2025. Studies name electrical faults as the leading cause.
@@ -29,21 +32,21 @@ flowchart LR
     C[Camera: board, cable print, magnet clip, wall] --> A
   end
   subgraph Server["WireProof server (Next.js)"]
-    A[/api/jobs/:id/agent] --> G{Privacy gate}
+    A["POST /api/jobs/:id/agent"] --> G{Privacy gate}
     G -- "face, person or private text" --> X[Blocked: never leaves]
     G -- pass --> L[Agent loop: Muse Spark plans a step]
-    L --> T[Tools: read_board, read_cable_print, magnet_test, map_wall, assign_breaker, record_observation, check_circuit, size_cable, submit_memo]
-    T --> R[Rules engine: BS 7671 tables, every finding cites its regulation]
-    T --> K[Code verification: size must be in the copied print, rating must match the device, numbers must come from a tool or the electrician]
-    K --> Case[(Case record: evidence, checklist, memo, egress log)]
+    L --> T["Tools: read_board, read_cable_print, magnet_test, map_wall, assign_breaker, record_observation, check_circuit, size_cable, submit_memo"]
+    T --> R["Rules engine: BS 7671 tables; every finding cites its regulation"]
+    T --> K["Code verification: size must be in the copied print, rating must match the device, numbers must come from a tool or the electrician"]
+    K --> Case[("Case record: evidence, checklist, memo, egress log")]
     R --> Case
   end
   subgraph Meta["Meta models"]
-    S[Muse Spark 1.3: plan, read, judge]
+    S["Muse Spark 1.3: plan, read, judge"]
     W[Muse Voice Transcribe]
-    M[SAM 3.1: conduit runs on the block grid]
-    I[Muse Image: the wall after plaster, the board corrected]
-    O[Muse Spark Open on Baseten: the gate]
+    M["SAM 3.1: conduit runs on the block grid"]
+    I["Muse Image: the wall after plaster, the board corrected"]
+    O["Muse Spark Open on Baseten: the gate"]
   end
   V --> W
   G --> O
@@ -51,7 +54,7 @@ flowchart LR
   T --> S
   T --> M
   T --> I
-  Case --> Rep[Owner's report: verdict, fixes, the photo behind each one]
+  Case --> Rep["Owner's report: verdict, fixes, the photo behind each one"]
   Rep -- share link --> WA[WhatsApp]
 ```
 Every model call from a cloud host goes through the relay described under Deploy, because Meta's API answers only from allowed locations. Nothing a model says changes a circuit until the code checks agree with it.
@@ -73,20 +76,8 @@ The model proposes; code decides:
 
 Turns are stateless: `store: false`, with encrypted reasoning replayed each turn. Meta keeps no copy of the conversation, and a turn takes about 2 s.
 
-## Status
-- `web/` is the app (Next.js 16). Run it with `cd web && npm install && npm run dev`, then open http://localhost:3000. It needs `MODEL_API_KEY` in `web/.env.local`. `BASETEN_API_KEY` switches the privacy gate on with Muse Spark Open; `GLIMMER_BASE_URL` and `GLIMMER_API_KEY` use Muse Glimmer on our own server instead. To use it on a phone (camera and mic need HTTPS), run `npm run build && npm run start` and `cloudflared tunnel --url http://localhost:3000`; with `SITE_PASSCODE` set, every device except this machine must enter the passcode once.
-  - **Agent** (`web/src/lib/agent`): loop, tools, case record and verification. `/api/jobs/[id]/agent` streams each tool call as it happens.
-  - **Rules engine** (`web/src/lib/rules`): BS 7671 checks for cable capacity with ambient and grouping factors, breaker coordination, voltage drop, earth, 30 mA RCD, and fake cable (magnet test, printed size, SON alert brands). Run the tests with `npm test`.
-  - **Screens:**
-    - copilot: tap to talk, read a cable print or the board, magnet test, breaker interlock;
-    - agent console: every run step by step, the case record, the checklist, and the memo with the electrician's sign-off;
-    - wall map: conduit runs and the no-drill zones on a chased wall, plus the X-ray over the plastered render;
-    - panel reader: photograph a breaker panel and see what's wrong;
-    - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp;
-    - start a job (`/jobs/new`): name the house, tick the circuits (ACs by HP, heater by kW, pump), and the copilot opens on it with every circuit sized by the rules;
-    - the panel reader (`/panel`) and the landing page are open to anyone without the passcode, so a visitor can try it on their own board.
-  - **Sending the report:** the WhatsApp button opens a message with the verdict, the first fixes, whether the electrician has signed it off, and a share link. The link opens that one report and the photos on it without the passcode; it can't reach the copilot, the console, other jobs, or a photo the privacy gate blocked. Changing `SITE_PASSCODE` revokes every share link.
-  - **Demo data:** a sample first-fix job captured through the app. The board and cable photos are real (one home, Nov 2); the people are made up; the one wall photo is an AI-generated sample and is labelled so in the job.
+### Talk Pidgin
+The copilot has a **Talk Pidgin** switch for electricians who don't follow English well. The agent still writes its answer in English, and code still checks every number in it. Then Muse Spark renders that answer in Nigerian Pidgin, and code checks the Pidgin states exactly the same numbers as the English; if a size or a rating changed in translation, the English is spoken instead (`web/src/lib/agent/pidgin.ts`). Asked about the kitchen ring, for example: "Kitchen ring need 2.5 mm² for 32 A type B breaker. Off and lock the breaker, tick box for app then send lighting earth check."
 
 ## Accuracy on real photos
 Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `probe/cable`, answer keys beside them). No house-wiring offcut was to hand, so the cable set is appliance and extension cords plus a 25 mm² battery cable: small embossed text, no ink, curved sheaths. Re-run with `probe/probe.py read …` and the vite-node script in `probe/README.md`.
@@ -98,14 +89,38 @@ Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `pr
 | Cable print: brand text | 7 cables | 5/7 exact; two had letters misread ("YUXIN" → "LUXIN"). Brand never changes a verdict |
 | Breaker board: ratings | 3 photos, 20 devices | **18/20**; both shots of the house board 15/15. On the solar box Spark read a surge protector's "40kA" as 40 A twice, so the reader now zeroes a surge protector's rating |
 | Breaker board: RCD present? | 3 | 3/3 (none on any of them, which is the finding) |
-| Voice commands | 25 lines, Nigerian English, 5 over background noise | pending: recorded with `probe/record_voice.sh` |
-
-### Tried by an electrician
-The phone footage in the video (starting a job, then talking to the copilot) was recorded by a working electrician on their own phone, not by us. They set up a three-bedroom bungalow on the live site, asked the copilot about the kitchen circuit, and were told the answer out loud. Their verdict: it makes sense and electricians will like it, but the copilot's words need to be clearer, more like Nigerian Pidgin, for those who don't follow English well.
-
-So the copilot now has a **Talk Pidgin** switch. The agent still writes its answer in English, and code still checks every number in it. Then Muse Spark renders that answer in Nigerian Pidgin, and code checks the Pidgin states exactly the same numbers as the English; if a size or a rating changed in translation, the English is spoken instead (`web/src/lib/agent/pidgin.ts`). For example, asked about the kitchen ring: "Kitchen ring need 2.5 mm² for 32 A type B breaker. Off and lock the breaker, tick box for app then send lighting earth check." That is the only outside use so far; we are collecting more.
 
 What "verified" means: code, not the model, checks that the size is one cable is made in, that it appears in the text copied off the sheath, and that the confidence is above 0.6. A reading that fails is kept as evidence but never changes a circuit; the electrician is asked for another photo.
+
+Voice accuracy is not measured yet. The recording script for a 25-line Nigerian English set, 5 lines over background noise, is `probe/record_voice.sh`.
+
+### Tried by an electrician
+The phone footage in the video (starting a job, then talking to the copilot) was recorded by a working electrician on their own phone, not by us. They set up a three-bedroom bungalow on the live site, asked the copilot about the kitchen circuit, and were told the answer out loud. Their verdict: it makes sense and electricians will like it, but the copilot's words need to be clearer, more like Nigerian Pidgin, for those who don't follow English well. That feedback became the Talk Pidgin switch above. It is the only outside use so far; we are collecting more.
+
+## Run it locally
+```sh
+cd web && npm install && npm run dev   # http://localhost:3000
+npm test                               # rules engine and verification tests
+```
+It needs `MODEL_API_KEY` in `web/.env.local`. `BASETEN_API_KEY` switches the privacy gate on with Muse Spark Open; `GLIMMER_BASE_URL` and `GLIMMER_API_KEY` use Muse Glimmer on our own server instead. To use it on a phone (camera and mic need HTTPS), run `npm run build && npm run start` and `cloudflared tunnel --url http://localhost:3000`; with `SITE_PASSCODE` set, every device except this machine must enter the passcode once.
+
+## What's in the repo
+- **`web/`**: the app (Next.js 16).
+  - **Agent** (`web/src/lib/agent`): loop, tools, case record and verification. `/api/jobs/[id]/agent` streams each tool call as it happens.
+  - **Rules engine** (`web/src/lib/rules`): BS 7671 checks for cable capacity with ambient and grouping factors, breaker coordination, voltage drop, earth, 30 mA RCD, and fake cable (magnet test, printed size, SON alert brands).
+  - **Screens:**
+    - start a job (`/jobs/new`): name the house, tick the circuits (ACs by HP, heater by kW, pump), and the copilot opens on it with every circuit sized by the rules;
+    - copilot: tap to talk, read a cable print or the board, magnet test, breaker interlock, Talk Pidgin;
+    - agent console: every run step by step, the case record, the checklist, and the memo with the electrician's sign-off;
+    - wall map: conduit runs and the no-drill zones on a chased wall, plus the X-ray over the plastered render;
+    - panel reader (`/panel`): photograph a breaker panel and see what's wrong; open to anyone without the passcode, so a visitor can try it on their own board;
+    - job overview, circuit detail and printable owner report, with a button that sends it to the owner on WhatsApp.
+  - **Sending the report:** the WhatsApp button opens a message with the verdict, the first fixes, whether the electrician has signed it off, and a share link. The link opens that one report and the photos on it without the passcode; it can't reach the copilot, the console, other jobs, or a photo the privacy gate blocked. Changing `SITE_PASSCODE` revokes every share link.
+  - **Demo data** (`web/seed/`): a sample first-fix job captured through the app. The board and cable photos are real (one home, Nov 2); the people are made up; the one wall photo is an AI-generated sample and is labelled so in the job.
+- **`probe/`**: the go/no-go tests that check Meta's models can read cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
+- **`relay/`**: the model-call relay for cloud hosts, described below.
+- **`infra/glimmer_modal.py`**: serves Muse Glimmer with llama.cpp on a Modal GPU, as the alternative privacy gate.
+- **`docs/video/`**: how the video was cut, the script and the footage credits.
 
 ## Deploy
 The app is one Node server with a data folder, so it runs as a container with a volume (`web/Dockerfile`).
@@ -129,8 +144,6 @@ Run it on the machine with the working key:
 ```
 node relay/meta-relay.mjs https://wireproof-production.up.railway.app
 ```
-- `infra/glimmer_modal.py` serves Muse Glimmer with llama.cpp on a Modal GPU, as the alternative privacy gate.
-- `probe/` holds the go/no-go tests that check Meta's models can read cable prints, breaker boards and magnet tests, hear electrician commands, and trace conduit in a wall. See [`probe/README.md`](probe/README.md).
 
 ## Licence
 MIT
