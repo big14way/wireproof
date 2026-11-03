@@ -9,7 +9,7 @@ MODEL_API_KEY=LLM|...
 # optional fallback for Spark: OPENROUTER_API_KEY=...  and  SPARK_PROVIDER=openrouter
 ```
 
-## What to buy and shoot (Wed Oct 28)
+## What to buy and shoot
 Market list:
 - **Cable:** a 1 m offcut each of genuine 1.5, 2.5 and 4 mm² cable (well-known brands), plus one cheap "copper" cable that looks suspicious.
 - **Magnet:** any fridge magnet.
@@ -43,7 +43,7 @@ cd ../web && set -a && . ./.env.local && set +a && npx vite-node --config ../pro
 .venv/bin/python probe.py track wall/pan.mp4 --concept "conduit" --fps 4 --out out/conduit
 ```
 
-## Pass bars (from PLAN.md)
+## Pass bars
 | Test | Pass |
 |---|---|
 | Cable prints | ≥ 9/10 correct size and brand |
@@ -55,5 +55,3 @@ cd ../web && set -a && . ./.env.local && set +a && npx vite-node --config ../pro
 Fallbacks:
 - If cable reading fails, rely on the electrician-confirmed checklist plus the magnet test.
 - If conduit tracing fails, the electrician points along the run while filming and Spark grounds the points.
-
-The block-yard commands (`track --births`, `snapshots`) from the earlier idea still work, but WireProof doesn't use them.

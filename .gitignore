@@ -6,3 +6,4 @@ __pycache__/
 *.mov
 .DS_Store
 infra/.venv/
+web/AGENTS.md
