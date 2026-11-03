@@ -80,7 +80,7 @@ Turns are stateless: `store: false`, with encrypted reasoning replayed each turn
 The copilot has a **Talk Pidgin** switch for electricians who don't follow English well. The agent still writes its answer in English, and code still checks every number in it. Then Muse Spark renders that answer in Nigerian Pidgin, and code checks the Pidgin states exactly the same numbers as the English; if a size or a rating changed in translation, the English is spoken instead (`web/src/lib/agent/pidgin.ts`). Asked about the kitchen ring, for example: "Kitchen ring need 2.5 mm² for 32 A type B breaker. Off and lock the breaker, tick box for app then send lighting earth check."
 
 ## Accuracy on real photos
-Measured on photos taken in one home in Delta State on Nov 2 (`probe/board`, `probe/cable`, answer keys beside them). No house-wiring offcut was to hand, so the cable set is appliance and extension cords plus a 25 mm² battery cable: small embossed text, no ink, curved sheaths. Re-run with `probe/probe.py read …` and the vite-node script in `probe/README.md`.
+Measured on photos taken in one Nigerian home on Nov 2 (`probe/board`, `probe/cable`, answer keys beside them). No house-wiring offcut was to hand, so the cable set is appliance and extension cords plus a 25 mm² battery cable: small embossed text, no ink, curved sheaths. Re-run with `probe/probe.py read …` and the vite-node script in `probe/README.md`.
 
 | Test | Photos | Result |
 |---|---|---|
