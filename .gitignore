@@ -7,3 +7,4 @@ __pycache__/
 .DS_Store
 infra/.venv/
 web/AGENTS.md
+relay/com.wireproof.relay.plist
